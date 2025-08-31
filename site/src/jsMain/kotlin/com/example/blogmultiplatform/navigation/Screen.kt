@@ -9,6 +9,7 @@ import com.example.blogmultiplatform.models.Constants.UPDATED_PARAM
 const val admin_signup_route = "/admin/signup"
 const val admin_login_route = "/admin/login"
 const val admin_home_route = "/admin/"
+const val admin_my_post_route = "/admin/myposts"
 
 sealed class Screen(val route: String) {
     object AdminHome : Screen(route = admin_home_route)
@@ -18,8 +19,8 @@ sealed class Screen(val route: String) {
         fun passPostId(id: String) = "/admin/create?${POST_ID_PARAM}=$id"
     }
 
-    object AdminMyPosts : Screen(route = "/admin/myposts") {
-        fun searchByTitle(query: String) = "/admin/myposts?${QUERY_PARAM}=$query"
+    object AdminMyPosts : Screen(route = admin_my_post_route) {
+        fun searchByTitle(query: String) = "$admin_my_post_route?${QUERY_PARAM}=$query"
     }
 
     object AdminSuccess : Screen(route = "/admin/success") {

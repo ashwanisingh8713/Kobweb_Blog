@@ -32,14 +32,14 @@ fun FooterSection() {
                     .fontFamily(FONT_FAMILY)
                     .fontSize(14.px)
                     .color(Colors.White),
-                text = "Copyright © 2023 • "
+                text = "Copyright © 2025 • "
             )
             SpanText(
                 modifier = Modifier
                     .fontFamily(FONT_FAMILY)
                     .fontSize(14.px)
                     .color(JsTheme.Primary.rgb),
-                text = "Stevdza-San"
+                text = "Ashwani Kumar"
             )
         }
     }

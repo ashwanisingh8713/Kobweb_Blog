@@ -17,6 +17,7 @@ import com.example.blogmultiplatform.models.Constants.QUERY_PARAM
 import com.example.blogmultiplatform.models.PostWithoutDetails
 import com.example.shared.JsTheme
 import com.example.blogmultiplatform.navigation.Screen
+import com.example.blogmultiplatform.navigation.admin_my_post_route
 import com.example.blogmultiplatform.util.Constants.FONT_FAMILY
 import com.example.blogmultiplatform.util.Constants.SIDE_PANEL_WIDTH
 import com.example.blogmultiplatform.util.Id
@@ -65,7 +66,7 @@ import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.Button
 import org.w3c.dom.HTMLInputElement
 
-@Page
+@Page(admin_my_post_route)
 @Composable
 fun MyPostsPage() {
     isUserLoggedIn {

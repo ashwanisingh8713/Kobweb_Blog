@@ -457,53 +457,40 @@ fun CategoryDropdown(
     selectedCategory: Category,
     onCategorySelect: (Category) -> Unit
 ) {
-    Box(
+    Row(
         modifier = Modifier
             .margin(topBottom = 12.px)
-            .classNames("dropdown")
             .fillMaxWidth()
             .height(54.px)
             .backgroundColor(JsTheme.LightGray.rgb)
-            .cursor(Cursor.Pointer)
-            .attrsModifier {
-                attr("data-bs-toggle", "dropdown")
-            }
+            .borderRadius(r = 4.px)
+            .padding(leftRight = 20.px),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(leftRight = 20.px),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            SpanText(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fontSize(16.px)
-                    .fontFamily(FONT_FAMILY),
-                text = selectedCategory.name
-            )
-            Box(modifier = Modifier.classNames("dropdown-toggle"))
-        }
-        Ul(
+        org.jetbrains.compose.web.dom.Select(
             attrs = Modifier
                 .fillMaxWidth()
-                .classNames("dropdown-menu")
-                .toAttrs()
+                .height(40.px)
+                .fontSize(16.px)
+                .fontFamily(FONT_FAMILY)
+                .backgroundColor(Colors.White)
+                .borderRadius(r = 4.px)
+                .toAttrs {
+                    attr("value", selectedCategory.name)
+                    onChange { event ->
+                        val value = event.value
+                        val category = Category.entries.find { it.name == value }
+                        if (category != null) {
+                            onCategorySelect(category)
+                        }
+                    }
+                }
         ) {
             Category.entries.forEach { category ->
-                Li {
-                    A(
-                        attrs = Modifier
-                            .classNames("dropdown-item")
-                            .color(Colors.Black)
-                            .fontFamily(FONT_FAMILY)
-                            .fontSize(16.px)
-                            .onClick { onCategorySelect(category) }
-                            .toAttrs()
-                    ) {
-                        Text(value = category.name)
-                    }
+                org.jetbrains.compose.web.dom.Option(
+                    value = category.name
+                ) {
+                    Text(category.name)
                 }
             }
         }
