@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kobwebx.markdown)
+    alias(libs.plugins.serialization.plugin)
 }
 
 group = "com.example.blogmultiplatform"
@@ -21,18 +22,21 @@ kobweb {
 kotlin {
     // This example is frontend only. However, for a fullstack app, you can uncomment the includeServer parameter
     // and the `jvmMain` source set below.
-    configAsKobwebApplication("blogmultiplatform" /*, includeServer = true*/)
+    configAsKobwebApplication("blogmultiplatform" , includeServer = true)
 
     sourceSets {
-//        commonMain.dependencies {
-//          // Add shared dependencies between JS and JVM here if building a fullstack app
-//        }
+        commonMain.dependencies {
+          // Add shared dependencies between JS and JVM here if building a fullstack app
+            implementation(libs.kotlinx.serialization)
+            implementation(project(":shared"))
+        }
 
         jsMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.html.core)
             implementation(libs.kobweb.core)
             implementation(libs.kobweb.silk)
+            implementation(libs.silk.icons.fa)
             // This default template uses built-in SVG icons, but what's available is limited.
             // Uncomment the following if you want access to a large set of font-awesome icons:
             // implementation(libs.silk.icons.fa)
@@ -40,8 +44,10 @@ kotlin {
         }
 
         // Uncomment the following if you pass `includeServer = true` into the `configAsKobwebApplication` call.
-//        jvmMain.dependencies {
-//            compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
-//        }
+        jvmMain.dependencies {
+            compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
+            implementation(libs.mongodb.kotlin.driver)
+            implementation(libs.kotlinx.serialization)
+        }
     }
 }

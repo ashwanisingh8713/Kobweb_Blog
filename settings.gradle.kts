@@ -30,3 +30,4 @@ gradle.settingsEvaluated {
 rootProject.name = "blogmultiplatform"
 
 include(":site")
+include(":shared")

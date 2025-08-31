@@ -1,143 +1,167 @@
 package com.example.blogmultiplatform.pages
 
-import androidx.compose.runtime.Composable
-import com.varabyte.kobweb.compose.css.StyleVariable
-import com.varabyte.kobweb.compose.foundation.layout.Box
+import androidx.compose.runtime.*
+import com.example.blogmultiplatform.components.CategoryNavigationItems
+import com.example.blogmultiplatform.components.OverflowSidePanel
+import com.example.blogmultiplatform.models.ApiListResponse
+import com.example.blogmultiplatform.models.Constants.POSTS_PER_PAGE
+import com.example.blogmultiplatform.models.PostWithoutDetails
+import com.example.blogmultiplatform.navigation.Screen
+import com.example.blogmultiplatform.sections.FooterSection
+import com.example.blogmultiplatform.sections.HeaderSection
+import com.example.blogmultiplatform.sections.MainSection
+import com.example.blogmultiplatform.sections.NewsletterSection
+import com.example.blogmultiplatform.sections.PostsSection
+import com.example.blogmultiplatform.sections.SponsoredPostsSection
+import com.example.blogmultiplatform.util.fetchLatestPosts
+import com.example.blogmultiplatform.util.fetchMainPosts
+import com.example.blogmultiplatform.util.fetchPopularPosts
+import com.example.blogmultiplatform.util.fetchSponsoredPosts
+import com.varabyte.kobweb.compose.foundation.layout.Arrangement
 import com.varabyte.kobweb.compose.foundation.layout.Column
-import com.varabyte.kobweb.compose.foundation.layout.Row
+import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.graphics.Color
-import com.varabyte.kobweb.compose.ui.graphics.Colors
-import com.varabyte.kobweb.compose.ui.modifiers.*
-import com.varabyte.kobweb.compose.ui.toAttrs
+import com.varabyte.kobweb.compose.ui.modifiers.fillMaxSize
 import com.varabyte.kobweb.core.Page
-import com.varabyte.kobweb.core.data.add
-import com.varabyte.kobweb.core.init.InitRoute
-import com.varabyte.kobweb.core.init.InitRouteContext
-import com.varabyte.kobweb.core.layout.Layout
 import com.varabyte.kobweb.core.rememberPageContext
-import com.varabyte.kobweb.silk.components.forms.Button
-import com.varabyte.kobweb.silk.components.navigation.Link
-import com.varabyte.kobweb.silk.components.text.SpanText
-import com.varabyte.kobweb.silk.style.CssStyle
-import com.varabyte.kobweb.silk.style.base
-import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
-import com.varabyte.kobweb.silk.style.breakpoint.displayIfAtLeast
-import com.varabyte.kobweb.silk.style.toAttrs
-import com.varabyte.kobweb.silk.style.toModifier
-import com.varabyte.kobweb.silk.theme.colors.ColorMode
-import com.varabyte.kobweb.silk.theme.colors.ColorPalettes
-import org.jetbrains.compose.web.css.cssRem
-import org.jetbrains.compose.web.css.fr
-import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.css.vh
-import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Text
-import com.example.blogmultiplatform.HeadlineTextStyle
-import com.example.blogmultiplatform.SubheadlineTextStyle
-import com.example.blogmultiplatform.components.layouts.PageLayoutData
-import com.example.blogmultiplatform.toSitePalette
-
-// Container that has a tagline and grid on desktop, and just the tagline on mobile
-val HeroContainerStyle = CssStyle {
-    base { Modifier.fillMaxWidth().gap(2.cssRem) }
-    Breakpoint.MD { Modifier.margin { top(20.vh) } }
-}
-
-// A demo grid that appears on the homepage because it looks good
-val HomeGridStyle = CssStyle.base {
-    Modifier
-        .gap(0.5.cssRem)
-        .width(70.cssRem)
-        .height(18.cssRem)
-}
-
-private val GridCellColorVar by StyleVariable<Color>()
-val HomeGridCellStyle = CssStyle.base {
-    Modifier
-        .backgroundColor(GridCellColorVar.value())
-        .boxShadow(blurRadius = 0.6.cssRem, color = GridCellColorVar.value())
-        .borderRadius(1.cssRem)
-}
-
-@Composable
-private fun GridCell(color: Color, row: Int, column: Int, width: Int? = null, height: Int? = null) {
-    Div(
-        HomeGridCellStyle.toModifier()
-            .setVariable(GridCellColorVar, color)
-            .gridItem(row, column, width, height)
-            .toAttrs()
-    )
-}
-
-
-@InitRoute
-fun initHomePage(ctx: InitRouteContext) {
-    ctx.data.add(PageLayoutData("Home"))
-}
+import com.varabyte.kobweb.silk.theme.breakpoint.rememberBreakpoint
+import kotlinx.coroutines.launch
 
 @Page
-@Layout(".components.layouts.PageLayout")
 @Composable
 fun HomePage() {
-    Row(HeroContainerStyle.toModifier()) {
-        Box {
-            val sitePalette = ColorMode.current.toSitePalette()
+    val context = rememberPageContext()
+    val scope = rememberCoroutineScope()
+    val breakpoint = rememberBreakpoint()
+    var overflowOpened by remember { mutableStateOf(false) }
+    var mainPosts by remember { mutableStateOf<ApiListResponse>(ApiListResponse.Idle) }
+    val latestPosts = remember { mutableStateListOf<PostWithoutDetails>() }
+    val sponsoredPosts = remember { mutableStateListOf<PostWithoutDetails>() }
+    val popularPosts = remember { mutableStateListOf<PostWithoutDetails>() }
+    var latestPostsToSkip by remember { mutableStateOf(0) }
+    var popularPostsToSkip by remember { mutableStateOf(0) }
+    var showMoreLatest by remember { mutableStateOf(false) }
+    var showMorePopular by remember { mutableStateOf(false) }
 
-            Column(Modifier.gap(2.cssRem)) {
-                Div(HeadlineTextStyle.toAttrs()) {
-                    SpanText(
-                        "Use this template as your starting point for ", Modifier.color(
-                            when (ColorMode.current) {
-                                ColorMode.LIGHT -> Colors.Black
-                                ColorMode.DARK -> Colors.White
+    LaunchedEffect(Unit) {
+        fetchMainPosts(
+            onSuccess = { mainPosts = it },
+            onError = {}
+        )
+        fetchLatestPosts(
+            skip = latestPostsToSkip,
+            onSuccess = { response ->
+                if (response is ApiListResponse.Success) {
+                    latestPosts.addAll(response.data)
+                    latestPostsToSkip += POSTS_PER_PAGE
+                    if (response.data.size >= POSTS_PER_PAGE) showMoreLatest = true
+                }
+            },
+            onError = {}
+        )
+        fetchSponsoredPosts(
+            onSuccess = { response ->
+                if (response is ApiListResponse.Success) {
+                    sponsoredPosts.addAll(response.data)
+                }
+            },
+            onError = {}
+        )
+        fetchPopularPosts(
+            skip = popularPostsToSkip,
+            onSuccess = { response ->
+                if (response is ApiListResponse.Success) {
+                    popularPosts.addAll(response.data)
+                    popularPostsToSkip += POSTS_PER_PAGE
+                    if (response.data.size >= POSTS_PER_PAGE) showMorePopular = true
+                }
+            },
+            onError = {}
+        )
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (overflowOpened) {
+            OverflowSidePanel(
+                onMenuClose = { overflowOpened = false },
+                content = { CategoryNavigationItems(vertical = true) }
+            )
+        }
+        HeaderSection(
+            breakpoint = breakpoint,
+            onMenuOpen = { overflowOpened = true }
+        )
+        MainSection(
+            breakpoint = breakpoint,
+            posts = mainPosts,
+            onClick = { context.router.navigateTo(Screen.PostPage.getPost(id = it)) }
+        )
+        PostsSection(
+            breakpoint = breakpoint,
+            posts = latestPosts,
+            title = "Latest Posts",
+            showMoreVisibility = showMoreLatest,
+            onShowMore = {
+                scope.launch {
+                    fetchLatestPosts(
+                        skip = latestPostsToSkip,
+                        onSuccess = { response ->
+                            if (response is ApiListResponse.Success) {
+                                if (response.data.isNotEmpty()) {
+                                    if (response.data.size < POSTS_PER_PAGE) {
+                                        showMoreLatest = false
+                                    }
+                                    latestPosts.addAll(response.data)
+                                    latestPostsToSkip += POSTS_PER_PAGE
+                                } else {
+                                    showMoreLatest = false
+                                }
                             }
-                        )
-                    )
-                    SpanText(
-                        "Kobweb",
-                        Modifier
-                            .color(sitePalette.brand.accent)
-                            // Use a shadow so this light-colored word is more visible in light mode
-                            .textShadow(0.px, 0.px, blurRadius = 0.5.cssRem, color = Colors.Gray)
+                        },
+                        onError = {}
                     )
                 }
-
-                Div(SubheadlineTextStyle.toAttrs()) {
-                    SpanText("You can read the ")
-                    Link("/about", "About")
-                    SpanText(" page for more information.")
+            },
+            onClick = { context.router.navigateTo(Screen.PostPage.getPost(id = it)) }
+        )
+        SponsoredPostsSection(
+            breakpoint = breakpoint,
+            posts = sponsoredPosts,
+            onClick = { context.router.navigateTo(Screen.PostPage.getPost(id = it)) }
+        )
+        PostsSection(
+            breakpoint = breakpoint,
+            posts = popularPosts,
+            title = "Popular Posts",
+            showMoreVisibility = showMorePopular,
+            onShowMore = {
+                scope.launch {
+                    fetchPopularPosts(
+                        skip = popularPostsToSkip,
+                        onSuccess = { response ->
+                            if (response is ApiListResponse.Success) {
+                                if (response.data.isNotEmpty()) {
+                                    if (response.data.size < POSTS_PER_PAGE) {
+                                        showMorePopular = false
+                                    }
+                                    popularPosts.addAll(response.data)
+                                    popularPostsToSkip += POSTS_PER_PAGE
+                                } else {
+                                    showMorePopular = false
+                                }
+                            }
+                        },
+                        onError = {}
+                    )
                 }
-
-                val ctx = rememberPageContext()
-                Button(onClick = {
-                    // Change this click handler with your call-to-action behavior
-                    // here. Link to an order page? Open a calendar UI? Play a movie?
-                    // Up to you!
-                    ctx.router.tryRoutingTo("/about")
-                }, colorPalette = ColorPalettes.Blue) {
-                    Text("This could be your CTA")
-                }
-            }
-        }
-
-        Div(
-            HomeGridStyle
-            .toModifier()
-            .displayIfAtLeast(Breakpoint.MD)
-            .grid {
-                rows { repeat(3) { size(1.fr) } }
-                columns { repeat(5) { size(1.fr) } }
-            }
-            .toAttrs()
-        ) {
-            val sitePalette = ColorMode.current.toSitePalette()
-            GridCell(sitePalette.brand.primary, 1, 1, 2, 2)
-            GridCell(ColorPalettes.Monochrome._600, 1, 3)
-            GridCell(ColorPalettes.Monochrome._100, 1, 4, width = 2)
-            GridCell(sitePalette.brand.accent, 2, 3, width = 2)
-            GridCell(ColorPalettes.Monochrome._300, 2, 5)
-            GridCell(ColorPalettes.Monochrome._800, 3, 1, width = 5)
-        }
+            },
+            onClick = { context.router.navigateTo(Screen.PostPage.getPost(id = it)) }
+        )
+        NewsletterSection(breakpoint = breakpoint)
+        FooterSection()
     }
 }

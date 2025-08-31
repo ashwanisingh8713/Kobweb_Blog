@@ -1,0 +1,108 @@
+# API Documentation
+
+Below is a list of all backend APIs implemented in the jvmMain module:
+
+---
+
+**Authentication APIs**
+
+1. Authenticate User (Sign In)
+   - Endpoint: /api/usercheck
+   - Method: POST
+   - Body: { "username": "string", "password": "string" }
+   - Description: Checks if a user exists with the given username and password (password is hashed before checking). Returns user info if valid, or error message if not.
+
+2. Check User ID Availability
+   - Endpoint: /api/checkuserid
+   - Method: POST
+   - Body: "userId" (String)
+   - Description: Checks if a user ID is available (returns true/false).
+
+3. Register New User (Sign Up) [Not implemented yet]
+   - Recommended Endpoint: /api/signup
+   - Method: POST
+   - Body: { "username": "string", "password": "string" }
+   - Description: Should create a new user if the username is not taken, hash the password, and return the created user info or error if username exists.
+
+---
+
+Below is a list of all backend APIs implemented in the jvmMain module (Posts.kt):
+
+---
+
+1. Create New Post
+   - Endpoint: /api/addpost
+   - Method: POST
+   - Body: Post object (JSON)
+   - Description: Creates a new post with a generated ID.
+
+2. Update Existing Post
+   - Endpoint: /api/updatepost
+   - Method: POST
+   - Body: Post object (JSON)
+   - Description: Updates an existing post.
+
+3. Get Posts by Author
+   - Endpoint: /api/readmyposts
+   - Method: POST
+   - Params: skip (Int), author (String)
+   - Description: Returns posts written by a specific author, with pagination.
+
+4. Get Main Posts
+   - Endpoint: /api/readmainposts
+   - Method: POST
+   - Description: Returns main posts.
+
+5. Get Latest Posts
+   - Endpoint: /api/readlatestposts
+   - Method: POST
+   - Params: skip (Int)
+   - Description: Returns latest posts, with pagination.
+
+6. Get Sponsored Posts
+   - Endpoint: /api/readsponsoredposts
+   - Method: POST
+   - Description: Returns sponsored posts.
+
+7. Get Popular Posts
+   - Endpoint: /api/readpopularposts
+   - Method: POST
+   - Params: skip (Int)
+   - Description: Returns popular posts, with pagination.
+
+8. Delete Multiple Posts
+   - Endpoint: /api/deleteselectedposts
+   - Method: POST
+   - Body: List of post IDs (JSON)
+   - Description: Deletes posts with the given IDs.
+
+9. Search Posts by Title
+   - Endpoint: /api/searchposts
+   - Method: POST
+   - Params: query (String), skip (Int)
+   - Description: Searches posts by title, with pagination.
+
+10. Search Posts by Category
+    - Endpoint: /api/searchpostsbycategory
+    - Method: POST
+    - Params: category (String), skip (Int)
+    - Description: Searches posts by category, with pagination.
+
+11. Get Post by ID
+    - Endpoint: /api/readselectedpost
+    - Method: POST
+    - Params: postId (String)
+    - Description: Returns a single post by its ID.
+
+---
+
+API Response Types:
+- Most APIs return either ApiListResponse.Success(data) or ApiListResponse.Error(message).
+- For single post fetch, ApiResponse.Success(data) or ApiResponse.Error(message).
+
+If you add more API endpoints in the future, document them here with details such as:
+- Endpoint URL
+- HTTP Method (GET, POST, etc.)
+- Body parameters
+- Query parameters
+- Title/Description
