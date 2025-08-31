@@ -35,16 +35,21 @@ import com.example.blogmultiplatform.util.Id
 import com.varabyte.kobweb.compose.ui.modifiers.id
 import kotlinx.browser.document
 import com.example.blogmultiplatform.util.createUserAccount
+import com.example.blogmultiplatform.util.SignUpResult
 
 @Page(admin_signup_route)
 @Composable
 fun SignUpScreen(ctx: PageContext) {
     val scope = rememberCoroutineScope()
-    var errorText by remember { mutableStateOf(" ") }
+    var signUpResult by remember { mutableStateOf<SignUpResult?>(null) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorDialogMessage by remember { mutableStateOf("") }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // Always render the form
         Column(
             modifier = Modifier
                 .padding(leftRight = 50.px, top = 80.px, bottom = 24.px)
@@ -106,30 +111,55 @@ fun SignUpScreen(ctx: PageContext) {
                     .fontSize(14.px)
                     .cursor(Cursor.Pointer)
                     .toAttrs {
+                        if (signUpResult is SignUpResult.Loading) attr("disabled", "")
                         onClick {
                             scope.launch {
                                 val username = (document.getElementById(Id.usernameInput) as? org.w3c.dom.HTMLInputElement)?.value ?: ""
                                 val password = (document.getElementById(Id.passwordInput) as? org.w3c.dom.HTMLInputElement)?.value ?: ""
                                 if (username.isNotEmpty() && password.isNotEmpty()) {
+                                    signUpResult = SignUpResult.Loading(true)
                                     val user = User(username = username, password = password)
-                                    val createdUser = createUserAccount(user)
-                                    if (createdUser != null) {
-                                        ctx.router.navigateTo(admin_login_route)
-                                    } else {
-                                        errorText = "Username already exists."
-                                        delay(3000)
-                                        errorText = " "
+                                    when (val result = createUserAccount(user)) {
+                                        is SignUpResult.Success -> {
+                                            signUpResult = null
+                                            showSuccessDialog = true
+                                        }
+                                        is SignUpResult.Error -> {
+                                            signUpResult = result
+                                            errorDialogMessage = result.message
+                                            showErrorDialog = true
+                                        }
+                                        else -> {}
                                     }
                                 } else {
-                                    errorText = "Input fields are empty."
-                                    delay(3000)
-                                    errorText = " "
+                                    signUpResult = SignUpResult.Error("Input fields are empty.")
+                                    errorDialogMessage = "Input fields are empty."
+                                    showErrorDialog = true
                                 }
                             }
                         }
                     }
             ) {
-                SpanText(text = "Create account")
+                if (signUpResult is SignUpResult.Loading) {
+                    SpanText(text = "Creating account...")
+                } else {
+                    SpanText(text = "Create account")
+                }
+            }
+            if (signUpResult is SignUpResult.Error && !showErrorDialog) {
+                val errorText = when ((signUpResult as SignUpResult.Error).message) {
+                    "Username already exists." -> "Username already exists."
+                    "Input fields are empty." -> "Input fields are empty."
+                    else -> "Server error. Please try again later."
+                }
+                SpanText(
+                    modifier = Modifier
+                        .width(350.px)
+                        .color(Colors.Red)
+                        .textAlign(TextAlign.Center)
+                        .fontFamily(FONT_FAMILY),
+                    text = errorText
+                )
             }
             Row(
                 modifier = Modifier.width(350.px),
@@ -150,14 +180,98 @@ fun SignUpScreen(ctx: PageContext) {
                     text = "Sign In"
                 )
             }
-            SpanText(
+        }
+        // Overlay error dialog
+        if (showErrorDialog) {
+            Box(
                 modifier = Modifier
-                    .width(350.px)
-                    .color(Colors.Red)
-                    .textAlign(TextAlign.Center)
-                    .fontFamily(FONT_FAMILY),
-                text = errorText
-            )
+                    .position(Position.Fixed)
+                    .top(0.px)
+                    .left(0.px)
+                    .width(100.vw)
+                    .height(100.vh)
+                    .backgroundColor(Colors.Black.copy(alpha = 200))
+                    .zIndex(9999),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .backgroundColor(Colors.White)
+                        .padding(32.px)
+                        .borderRadius(8.px),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    SpanText(
+                        modifier = Modifier
+                            .fontSize(18.px)
+                            .fontWeight(FontWeight.Bold)
+                            .margin(bottom = 16.px),
+                        text = errorDialogMessage
+                    )
+                    Button(
+                        attrs = Modifier
+                            .backgroundColor(JsTheme.Primary.rgb)
+                            .color(Colors.White)
+                            .borderRadius(r = 4.px)
+                            .padding(leftRight = 16.px, topBottom = 8.px)
+                            .cursor(Cursor.Pointer)
+                            .toAttrs {
+                                onClick {
+                                    showErrorDialog = false
+                                    if (signUpResult is SignUpResult.Error) signUpResult = null
+                                }
+                            },
+                    ) {
+                        SpanText(text = "OK")
+                    }
+                }
+            }
+        }
+        // Overlay success dialog
+        if (showSuccessDialog) {
+            Box(
+                modifier = Modifier
+                    .position(Position.Fixed)
+                    .top(0.px)
+                    .left(0.px)
+                    .width(100.vw)
+                    .height(100.vh)
+                    .backgroundColor(Colors.Black.copy(alpha = 200))
+                    .zIndex(9999),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .backgroundColor(Colors.White)
+                        .padding(32.px)
+                        .borderRadius(8.px),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    SpanText(
+                        modifier = Modifier
+                            .fontSize(18.px)
+                            .fontWeight(FontWeight.Bold)
+                            .margin(bottom = 16.px),
+                        text = "Account created successfully!"
+                    )
+                    Button(
+                        attrs = Modifier
+                            .backgroundColor(JsTheme.Primary.rgb)
+                            .color(Colors.White)
+                            .borderRadius(r = 4.px)
+                            .padding(leftRight = 16.px, topBottom = 8.px)
+                            .cursor(Cursor.Pointer)
+                            .toAttrs {
+                                onClick {
+                                    showSuccessDialog = false
+                                    ctx.router.navigateTo(admin_login_route)
+                                }
+                            },
+                    ) {
+                        SpanText(text = "Go to Login")
+                    }
+                }
+            }
         }
     }
 }

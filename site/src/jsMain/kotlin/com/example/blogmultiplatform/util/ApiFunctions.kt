@@ -246,16 +246,35 @@ suspend fun subscribeToNewsletter(newsletter: Newsletter): String {
     )?.decodeToString().toString().replace("\"", "")
 }
 
-suspend fun createUserAccount(user: User): UserWithoutPassword? {
+sealed class SignUpResult {
+    data class Loading(val isLoading: Boolean) : SignUpResult()
+    data class Success(val user: UserWithoutPassword) : SignUpResult()
+    data class Error(val message: String) : SignUpResult()
+}
+
+suspend fun createUserAccount(user: User): SignUpResult {
     return try {
-        window.api.tryPost(
+        val response = window.api.tryPost(
             apiPath = "signup",
             body = Json.encodeToString(user).encodeToByteArray()
-        )?.decodeToString().parseData()
+        )?.decodeToString()
+        // Check for known error messages
+        if (response != null && (response.contains("Username already exists", ignoreCase = true) || response.contains("User already exists", ignoreCase = true))) {
+            return SignUpResult.Error("Username already exists.")
+        }
+        // Try to parse as UserWithoutPassword
+        return try {
+            val userObj = response?.parseData<UserWithoutPassword>()
+            if (userObj != null) {
+                SignUpResult.Success(userObj)
+            } else {
+                SignUpResult.Error(response ?: "Unknown error")
+            }
+        } catch (e: Exception) {
+            SignUpResult.Error(response ?: "Unknown error")
+        }
     } catch (e: Exception) {
-        println("SIGNUP_ERROR")
-        println(e.message)
-        null
+        SignUpResult.Error(e.message ?: "Unknown error")
     }
 }
 
