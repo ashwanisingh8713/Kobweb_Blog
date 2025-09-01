@@ -19,7 +19,7 @@ suspend fun userCheck(context: ApiContext) {
             context.req.body?.decodeToString()?.let { Json.decodeFromString<User>(it) }
         val user = userRequest?.let {
             context.data.getValue<MongoDB>().checkUserExistence(
-                User(username = it.username, password = hashPassword(it.password))
+                User(username = it.username, password = hashPassword(it.password), role = it.role)
             )
         }
         if (user != null) {

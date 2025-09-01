@@ -7,7 +7,8 @@ import org.bson.codecs.ObjectIdGenerator
 actual data class User(
     actual val _id: String = ObjectIdGenerator().generate().toString(),
     actual val username: String = "",
-    actual val password: String = ""
+    actual val password: String = "",
+    actual val role: String = ""
 )
 
 @Serializable

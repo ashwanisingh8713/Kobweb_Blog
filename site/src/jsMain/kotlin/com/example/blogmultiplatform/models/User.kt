@@ -8,7 +8,8 @@ actual data class User(
     @SerialName(value = "_id")
     actual val _id: String = "",
     actual val username: String = "",
-    actual val password: String = ""
+    actual val password: String = "",
+    actual val role: String = ""
 )
 
 @Serializable

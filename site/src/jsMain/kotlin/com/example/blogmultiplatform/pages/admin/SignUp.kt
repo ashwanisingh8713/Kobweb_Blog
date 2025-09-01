@@ -45,6 +45,7 @@ fun SignUpScreen(ctx: PageContext) {
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorDialogMessage by remember { mutableStateOf("") }
+    var role by remember { mutableStateOf("Client") }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -98,6 +99,27 @@ fun SignUpScreen(ctx: PageContext) {
                         attr("placeholder", "Password")
                     }
             )
+            // Role selection
+            Row(
+                modifier = Modifier.width(350.px).margin(bottom = 20.px),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Radio, attrs = Modifier.onClick { role = "Client" }.toAttrs {
+                        attr("name", "role")
+                        if (role == "Client") attr("checked", "checked")
+                    })
+                    SpanText(text = "Client", modifier = Modifier.margin(left = 6.px).fontFamily(FONT_FAMILY).fontSize(14.px))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Radio, attrs = Modifier.onClick { role = "Developer" }.toAttrs {
+                        attr("name", "role")
+                        if (role == "Developer") attr("checked", "checked")
+                    })
+                    SpanText(text = "Developer", modifier = Modifier.margin(left = 6.px).fontFamily(FONT_FAMILY).fontSize(14.px))
+                }
+            }
             Button(
                 attrs = Modifier
                     .margin(bottom = 24.px)
@@ -116,9 +138,10 @@ fun SignUpScreen(ctx: PageContext) {
                             scope.launch {
                                 val username = (document.getElementById(Id.usernameInput) as? org.w3c.dom.HTMLInputElement)?.value ?: ""
                                 val password = (document.getElementById(Id.passwordInput) as? org.w3c.dom.HTMLInputElement)?.value ?: ""
-                                if (username.isNotEmpty() && password.isNotEmpty()) {
+                                if (username.isNotEmpty() && password.isNotEmpty() && role.isNotEmpty()) {
                                     signUpResult = SignUpResult.Loading(true)
-                                    val user = User(username = username, password = password)
+                                    val user = User(username = username, password = password, role = role)
+                                    // role will be added after User model update
                                     when (val result = createUserAccount(user)) {
                                         is SignUpResult.Success -> {
                                             signUpResult = null
@@ -132,8 +155,8 @@ fun SignUpScreen(ctx: PageContext) {
                                         else -> {}
                                     }
                                 } else {
-                                    signUpResult = SignUpResult.Error("Input fields are empty.")
-                                    errorDialogMessage = "Input fields are empty."
+                                    signUpResult = SignUpResult.Error("Input fields are empty or role not selected.")
+                                    errorDialogMessage = "Input fields are empty or role not selected."
                                     showErrorDialog = true
                                 }
                             }

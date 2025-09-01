@@ -67,6 +67,7 @@ fun LoginScreen() {
     val scope = rememberCoroutineScope()
     val context = rememberPageContext()
     var errorText by remember { mutableStateOf(" ") }
+    var role by remember { mutableStateOf("Client") }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -126,6 +127,27 @@ fun LoginScreen() {
                         attr("placeholder", "Password")
                     }
             )
+            // Role selection
+            Row(
+                modifier = Modifier.width(350.px).margin(bottom = 20.px),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Radio, attrs = Modifier.onClick { role = "Client" }.toAttrs {
+                        attr("name", "role")
+                        if (role == "Client") attr("checked", "checked")
+                    })
+                    SpanText(text = "Client", modifier = Modifier.margin(left = 6.px).fontFamily(FONT_FAMILY).fontSize(14.px))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Radio, attrs = Modifier.onClick { role = "Developer" }.toAttrs {
+                        attr("name", "role")
+                        if (role == "Developer") attr("checked", "checked")
+                    })
+                    SpanText(text = "Developer", modifier = Modifier.margin(left = 6.px).fontFamily(FONT_FAMILY).fontSize(14.px))
+                }
+            }
             Button(
                 attrs = Modifier
                     .margin(bottom = 24.px)
@@ -139,35 +161,41 @@ fun LoginScreen() {
                     .fontSize(14.px)
                     .noBorder()
                     .cursor(Cursor.Pointer)
-                    .onClick {
-                        scope.launch {
-                            val username =
-                                (document.getElementById(Id.usernameInput) as HTMLInputElement).value
-                            val password =
-                                (document.getElementById(Id.passwordInput) as HTMLInputElement).value
-                            if (username.isNotEmpty() && password.isNotEmpty()) {
-                                val user = checkUserExistence(
-                                    user = User(
-                                        username = username,
-                                        password = password
+                    .toAttrs {
+                        onClick {
+                            scope.launch {
+                                val username =
+                                    (document.getElementById(Id.usernameInput) as HTMLInputElement).value
+                                val password =
+                                    (document.getElementById(Id.passwordInput) as HTMLInputElement).value
+                                if (username.isNotEmpty() && password.isNotEmpty() && role.isNotEmpty()) {
+                                    val user = checkUserExistence(
+                                        user = User(
+                                            username = username,
+                                            password = password,
+                                            role = role
+                                        )
                                     )
-                                )
-                                if (user != null) {
-                                    rememberLoggedIn(remember = true, user = user)
-                                    context.router.navigateTo(Screen.AdminHome.route)
+                                    if (user != null) {
+                                        rememberLoggedIn(remember = true, user = user)
+                                        if (role == "Developer") {
+                                            context.router.navigateTo(Screen.HomePage.route)
+                                        } else if (role == "Client") {
+                                            context.router.navigateTo(Screen.AdminHome.route)
+                                        }
+                                    } else {
+                                        errorText = "The user doesn't exist."
+                                        delay(3000)
+                                        errorText = " "
+                                    }
                                 } else {
-                                    errorText = "The user doesn't exist."
+                                    errorText = "Please fill all fields and select a role."
                                     delay(3000)
                                     errorText = " "
                                 }
-                            } else {
-                                errorText = "Input fields are empty."
-                                delay(3000)
-                                errorText = " "
                             }
                         }
-                    }
-                    .toAttrs()
+                    },
             ) {
                 SpanText(text = "Sign in")
             }
