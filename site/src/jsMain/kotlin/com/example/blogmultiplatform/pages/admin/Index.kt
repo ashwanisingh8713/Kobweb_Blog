@@ -9,7 +9,6 @@ import androidx.compose.runtime.setValue
 import com.example.blogmultiplatform.components.AdminPageLayout
 import com.example.blogmultiplatform.components.LoadingIndicator
 import com.example.blogmultiplatform.models.RandomJoke
-import com.example.shared.JsTheme
 import com.example.blogmultiplatform.navigation.Screen
 import com.example.blogmultiplatform.util.Constants.FONT_FAMILY
 import com.example.blogmultiplatform.util.Constants.PAGE_WIDTH
@@ -17,6 +16,7 @@ import com.example.blogmultiplatform.util.Constants.SIDE_PANEL_WIDTH
 import com.example.blogmultiplatform.util.Res
 import com.example.blogmultiplatform.util.fetchRandomJoke
 import com.example.blogmultiplatform.util.isUserLoggedIn
+import com.example.shared.JsTheme
 import com.varabyte.kobweb.compose.css.Cursor
 import com.varabyte.kobweb.compose.css.FontWeight
 import com.varabyte.kobweb.compose.css.TextAlign
@@ -53,9 +53,13 @@ import com.varabyte.kobweb.silk.components.text.SpanText
 import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
 import com.varabyte.kobweb.silk.theme.breakpoint.rememberBreakpoint
 import org.jetbrains.compose.web.css.Position
+import org.jetbrains.compose.web.css.marginTop
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.vh
+import org.jetbrains.compose.web.dom.Button
+import org.jetbrains.compose.web.dom.Div
+import org.jetbrains.compose.web.dom.Text
 
 @Page
 @Composable
@@ -82,6 +86,14 @@ fun HomeScreen() {
 @Composable
 fun HomeContent(randomJoke: RandomJoke?) {
     val breakpoint = rememberBreakpoint()
+    val context = rememberPageContext()
+    Div({ style { marginTop(16.px) } }) {
+        Button(attrs = {
+            onClick { context.router.navigateTo(Screen.ClientProfile.route) }
+        }) {
+            Text("Complete Profile")
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()

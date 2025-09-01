@@ -24,12 +24,19 @@ import com.varabyte.kobweb.compose.ui.Modifier
 import com.varabyte.kobweb.compose.ui.modifiers.fillMaxSize
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.core.rememberPageContext
+import com.varabyte.kobweb.framework.annotations.DelicateApi
 import com.varabyte.kobweb.silk.theme.breakpoint.rememberBreakpoint
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.web.dom.Button
+import org.jetbrains.compose.web.dom.Text
+import org.jetbrains.compose.web.css.marginTop
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.dom.Div
 
 @Page
 @Composable
 fun HomePage() {
+    @OptIn(DelicateApi::class)
     val context = rememberPageContext()
     val scope = rememberCoroutineScope()
     val breakpoint = rememberBreakpoint()
@@ -85,6 +92,13 @@ fun HomePage() {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Div({ style { marginTop(16.px) } }) {
+            Button(attrs = {
+                onClick { context.router.navigateTo(Screen.DeveloperProfile.route) }
+            }) {
+                Text("Complete Profile")
+            }
+        }
         if (overflowOpened) {
             OverflowSidePanel(
                 onMenuClose = { overflowOpened = false },
