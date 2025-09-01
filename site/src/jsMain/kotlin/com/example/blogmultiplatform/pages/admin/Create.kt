@@ -109,7 +109,7 @@ data class CreatePageUiState(
     var thumbnail: String = "",
     var thumbnailInputDisabled: Boolean = true,
     var content: String = "",
-    var category: Category = Category.Programming,
+    var category: Category = Category.Technology,
     var buttonText: String = "Create",
     var popular: Boolean = false,
     var main: Boolean = false,
@@ -299,7 +299,10 @@ fun CreateScreen() {
                 )
                 CategoryDropdown(
                     selectedCategory = uiState.category,
-                    onCategorySelect = { uiState = uiState.copy(category = it) }
+                    onCategorySelect = {
+                        console.log("Selected category:", it.name)
+                        uiState = uiState.copy(category = it)
+                    }
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth().margin(topBottom = 12.px),
@@ -462,19 +465,22 @@ fun CategoryDropdown(
             .margin(topBottom = 12.px)
             .fillMaxWidth()
             .height(54.px)
-            .backgroundColor(JsTheme.LightGray.rgb)
+            //.backgroundColor(JsTheme.LightGray.rgb)
             .borderRadius(r = 4.px)
-            .padding(leftRight = 20.px),
+
+        ,
         verticalAlignment = Alignment.CenterVertically
     ) {
         org.jetbrains.compose.web.dom.Select(
             attrs = Modifier
                 .fillMaxWidth()
-                .height(40.px)
+                .fillMaxHeight()
                 .fontSize(16.px)
                 .fontFamily(FONT_FAMILY)
-                .backgroundColor(Colors.White)
+                .backgroundColor(JsTheme.LightGray.rgb)
                 .borderRadius(r = 4.px)
+                .padding(leftRight = 20.px)
+                .noBorder() // Remove border line
                 .toAttrs {
                     attr("value", selectedCategory.name)
                     onChange { event ->
