@@ -14,6 +14,7 @@ import com.example.blogmultiplatform.util.Constants.HEADER_HEIGHT
 import com.example.blogmultiplatform.util.Constants.PAGE_WIDTH
 import com.example.blogmultiplatform.util.Id
 import com.example.blogmultiplatform.util.Res
+import com.stevdza.san.kotlinbs.components.BSButton
 import com.varabyte.kobweb.compose.css.Cursor
 import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Row
@@ -132,6 +133,11 @@ fun Header(
                 context.router.navigateTo(Screen.SearchPage.searchByTitle(query = query))
             },
             onSearchIconClick = { fullSearchBarOpened = it }
+        )
+        Spacer()
+        BSButton(
+            text = "Sign in",
+            onClick = {context.router.navigateTo(Screen.AdminLogin.route)}
         )
     }
 }
