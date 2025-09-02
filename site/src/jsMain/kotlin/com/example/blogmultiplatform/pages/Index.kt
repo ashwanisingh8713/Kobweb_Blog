@@ -92,13 +92,6 @@ fun HomePage() {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Div({ style { marginTop(16.px) } }) {
-            Button(attrs = {
-                onClick { context.router.navigateTo(Screen.DeveloperProfile.route) }
-            }) {
-                Text("Complete Profile")
-            }
-        }
         if (overflowOpened) {
             OverflowSidePanel(
                 onMenuClose = { overflowOpened = false },

@@ -238,5 +238,7 @@ private fun rememberLoggedIn(
     if (user != null) {
         localStorage["userId"] = user._id
         localStorage["username"] = user.username
+        localStorage["isLoggedIn"] = "true"
+        localStorage["userName"] = user.username
     }
 }

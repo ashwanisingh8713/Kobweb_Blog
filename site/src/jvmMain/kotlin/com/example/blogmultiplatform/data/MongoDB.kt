@@ -32,8 +32,12 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
 //    private val client = MongoClient.create()
     // For a remote mongo database.
 
-    val connectionString = "mongodb+srv://ashwani_u:ashwani_p@cluster0.2k09rpz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    //val connectionString = "mongodb+srv://ashwani_u:ashwani_p@cluster0.2k09rpz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    val connectionString = "mongodb+srv://abhisheksfs6892:csS9PX9q1Tx76GMp@cluster0.rhaswg4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+
 //    private val client = MongoClient.create(System.getenv("MONGODB_URI"))
+
     private val client = MongoClient.create(connectionString)
 
     private val database = client.getDatabase(DATABASE_NAME)

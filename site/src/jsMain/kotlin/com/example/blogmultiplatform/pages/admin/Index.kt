@@ -87,13 +87,6 @@ fun HomeScreen() {
 fun HomeContent(randomJoke: RandomJoke?) {
     val breakpoint = rememberBreakpoint()
     val context = rememberPageContext()
-    Div({ style { marginTop(16.px) } }) {
-        Button(attrs = {
-            onClick { context.router.navigateTo(Screen.ClientProfile.route) }
-        }) {
-            Text("Complete Profile")
-        }
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()

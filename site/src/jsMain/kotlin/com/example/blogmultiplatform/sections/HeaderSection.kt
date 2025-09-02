@@ -34,6 +34,7 @@ import com.varabyte.kobweb.compose.ui.modifiers.width
 import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.silk.components.graphics.Image
 import com.varabyte.kobweb.silk.components.icons.fa.FaBars
+import com.varabyte.kobweb.silk.components.icons.fa.FaPencil
 import com.varabyte.kobweb.silk.components.icons.fa.FaXmark
 import com.varabyte.kobweb.silk.components.icons.fa.IconSize
 import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
@@ -134,10 +135,58 @@ fun Header(
             },
             onSearchIconClick = { fullSearchBarOpened = it }
         )
+        // Move Complete Profile action right beside the search box
+        val isLoggedIn = kotlinx.browser.localStorage.getItem("isLoggedIn") == "true"
+        val userName = kotlinx.browser.localStorage.getItem("userName") ?: ""
+        val profileComplete = kotlinx.browser.localStorage.getItem("profileComplete") == "true"
+        if (isLoggedIn && !profileComplete) {
+            FaPencil(
+                modifier = Modifier
+                    .cursor(Cursor.Pointer)
+                    .margin(left = 16.px, right = 16.px)
+                    .color(Colors.White)
+                    .onClick {
+                        context.router.navigateTo("/developer/profile")
+                    },
+                size = IconSize.LG
+            )
+        }
         Spacer()
-        BSButton(
-            text = "Sign in",
-            onClick = {context.router.navigateTo(Screen.AdminLogin.route)}
-        )
+        if (!isLoggedIn) {
+            BSButton(
+                text = "Sign in",
+                onClick = { context.router.navigateTo(Screen.AdminLogin.route) },
+                modifier = Modifier.margin(right = 12.px)
+            )
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BSButton(
+                    text = userName,
+                    onClick = {},
+                    modifier = Modifier.margin(right = 8.px)
+                )
+                if (!profileComplete) {
+                    FaPencil(
+                        modifier = Modifier
+                            .cursor(Cursor.Pointer)
+                            .margin(right = 12.px)
+                            .color(Colors.White)
+                            .onClick {
+                                context.router.navigateTo("/developer/profile")
+                            },
+                        size = IconSize.LG
+                    )
+                } else {
+                    BSButton(
+                        text = "Logout",
+                        onClick = {
+                            kotlinx.browser.localStorage.clear()
+                            context.router.navigateTo(Screen.AdminLogin.route)
+                        },
+                        modifier = Modifier.margin(right = 12.px)
+                    )
+                }
+            }
+        }
     }
 }

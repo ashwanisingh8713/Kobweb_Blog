@@ -24,7 +24,7 @@ fun ClientProfileScreen() {
 }
 
 @Composable
-private fun ClientProfileContent(userId: String, onProfileCompleted: () -> Unit) {
+fun ClientProfileContent(userId: String, onProfileCompleted: () -> Unit) {
     var profile by remember { mutableStateOf(ProfileRepository.getProfile(userId) ?: Profile(userId = userId)) }
     var name by remember { mutableStateOf(profile.name) }
     var email by remember { mutableStateOf(profile.email) }
@@ -59,6 +59,9 @@ private fun ClientProfileContent(userId: String, onProfileCompleted: () -> Unit)
                     val updatedProfile = Profile(userId, name, email, bio)
                     ProfileRepository.saveProfile(updatedProfile)
                     error = ""
+                    kotlinx.browser.localStorage.setItem("userName", name)
+                    kotlinx.browser.localStorage.setItem("isLoggedIn", "true")
+                    kotlinx.browser.localStorage.setItem("profileComplete", "true")
                     onProfileCompleted()
                 }
             }
