@@ -14,5 +14,6 @@ actual data class User(
 @Serializable
 actual data class UserWithoutPassword(
     actual val _id: String = ObjectIdGenerator().generate().toString(),
-    actual val username: String = ""
+    actual val username: String = "",
+    actual val role: String = ""
 )

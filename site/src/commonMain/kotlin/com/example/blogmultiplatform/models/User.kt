@@ -10,4 +10,5 @@ expect class User {
 expect class UserWithoutPassword {
     val _id: String
     val username: String
+    val role: String
 }

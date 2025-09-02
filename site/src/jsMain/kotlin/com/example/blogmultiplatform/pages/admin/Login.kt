@@ -61,6 +61,7 @@ import org.jetbrains.compose.web.dom.Input
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.set
 
+
 @Page
 @Composable
 fun LoginScreen() {
@@ -240,5 +241,6 @@ private fun rememberLoggedIn(
         localStorage["username"] = user.username
         localStorage["isLoggedIn"] = "true"
         localStorage["userName"] = user.username
+        localStorage["role"] = user.role // Store role explicitly
     }
 }

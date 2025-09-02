@@ -16,5 +16,6 @@ actual data class User(
 actual data class UserWithoutPassword(
     @SerialName(value = "_id")
     actual val _id: String = "",
-    actual val username: String = ""
+    actual val username: String = "",
+    actual val role: String = ""
 )

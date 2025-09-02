@@ -139,40 +139,35 @@ fun Header(
         val isLoggedIn = kotlinx.browser.localStorage.getItem("isLoggedIn") == "true"
         val userName = kotlinx.browser.localStorage.getItem("userName") ?: ""
         val profileComplete = kotlinx.browser.localStorage.getItem("profileComplete") == "true"
-        if (isLoggedIn && !profileComplete) {
-            FaPencil(
-                modifier = Modifier
-                    .cursor(Cursor.Pointer)
-                    .margin(left = 16.px, right = 16.px)
-                    .color(Colors.White)
-                    .onClick {
-                        context.router.navigateTo("/developer/profile")
-                    },
-                size = IconSize.LG
-            )
-        }
         Spacer()
-        if (!isLoggedIn) {
-            BSButton(
-                text = "Sign in",
-                onClick = { context.router.navigateTo(Screen.AdminLogin.route) },
-                modifier = Modifier.margin(right = 12.px)
-            )
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // Top right header actions
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (!isLoggedIn) {
+                BSButton(
+                    text = "Sign in",
+                    onClick = { context.router.navigateTo(Screen.AdminLogin.route) },
+                    modifier = Modifier.margin(right = 12.px)
+                )
+            } else {
                 BSButton(
                     text = userName,
                     onClick = {},
                     modifier = Modifier.margin(right = 8.px)
                 )
                 if (!profileComplete) {
+                    val role = kotlinx.browser.localStorage.getItem("role") ?: ""
+                    val profileRoute = if (role.equals("Client", ignoreCase = true)) {
+                        "/client/profile"
+                    } else {
+                        "/developer/profile"
+                    }
                     FaPencil(
                         modifier = Modifier
                             .cursor(Cursor.Pointer)
                             .margin(right = 12.px)
                             .color(Colors.White)
                             .onClick {
-                                context.router.navigateTo("/developer/profile")
+                                context.router.navigateTo(profileRoute)
                             },
                         size = IconSize.LG
                     )
