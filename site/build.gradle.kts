@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kobwebx.markdown)
     alias(libs.plugins.serialization.plugin)
+    alias(libs.plugins.ksp)
 }
 
 group = "com.example.blogmultiplatform"

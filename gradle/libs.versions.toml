@@ -2,6 +2,7 @@
 jetbrains-compose = "1.8.0"
 kobweb = "0.23.1"
 kotlin = "2.2.10"
+ksp = "2.0.0-1.0.21"
 
 serialization = "1.7.3"
 mongodb-kotlin = "4.11.0"
@@ -35,3 +36,4 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 
 serialization-plugin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 mongodb-realm = { id = "io.realm.kotlin", version.ref = "mongodb" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

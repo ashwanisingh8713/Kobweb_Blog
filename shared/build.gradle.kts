@@ -2,7 +2,7 @@ import com.varabyte.kobweb.gradle.library.util.configAsKobwebLibrary
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-//    id("com.android.library")
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kobweb.library)
 }
 
@@ -14,14 +14,6 @@ kotlin {
 
     js(IR) { browser() }
     jvm()
-    /*androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-    }*/
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -44,16 +36,3 @@ kotlin {
         //androidMain.dependencies {}
     }
 }
-
-//android {
-//    namespace = "com.example.shared"
-//    compileSdk = 34
-//    defaultConfig {
-//        minSdk = 24
-//    }
-//
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_17
-//        targetCompatibility = JavaVersion.VERSION_17
-//    }
-//}

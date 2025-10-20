@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.serialization.plugin) apply false
     alias(libs.plugins.kobweb.application) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.ksp) apply false
     //alias(libs.plugins.org.jetbrains.kotlin.android) apply false
     //alias(libs.plugins.mongodb.realm) apply false
 }
