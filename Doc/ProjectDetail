@@ -1,0 +1,22 @@
+This repository https://github.com/ashwanisingh8713/Kobweb_Blog
+It is FullStack Web App written in Kobweb framework.
+It is used to write technical Blogs.
+It has category
+- Technology
+- Programming
+- Design
+
+Search option.
+Sign IN
+Sign UP
+PageNavigation
+Create Blog/Post with appropriate category.
+MongoDB
+API integration using Kobweb Framework.
+
+below sub-modules are integrated inside "site" module:
+- jsMain
+- jvmMain
+- commonMain
+
+
