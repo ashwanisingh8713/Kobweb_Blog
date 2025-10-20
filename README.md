@@ -20,26 +20,6 @@ It allows users to create, explore, and manage technical blogs under multiple ca
 
 ---
 
-## 🧱 Project Structure
-Kobweb_Blog/
-├── .kobweb/                # Kobweb configuration and project metadata
-├── gradle/                 # Gradle build configuration files
-├── site/                   # Main Kobweb application module
-│   ├── commonMain/         # Shared models, DTOs, and utility code
-│   ├── jsMain/             # Frontend - Compose for Web UI components
-│   │   ├── components/     # Reusable UI components (Navbar, Cards, etc.)
-│   │   ├── pages/          # Blog pages, category pages, sign-in/sign-up forms
-│   │   └── utils/          # Frontend helpers and constants
-│   └── jvmMain/            # Backend - Server logic, routes, and APIs
-│       ├── api/            # REST API endpoints
-│       ├── db/             # MongoDB connection and data models
-│       └── services/       # Authentication, post management, etc.
-├── build.gradle.kts        # Project build configuration
-├── settings.gradle.kts     # Gradle settings
-└── README.md               # Project documentation (this file)
-
----
-
 ## ⚙️ Tech Stack
 
 | Layer | Technology | Description |
