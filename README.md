@@ -1,7 +1,7 @@
 # 📝 Kobweb Blog
 
 A **Full-Stack Technical Blogging Platform** built using the **Kobweb Framework (Kotlin Multiplatform)**.  
-It allows users to create, explore, and manage technical blogs under multiple categories — all with a clean, modern UI and seamless backend integration.
+It allows users to create, explore, and manage technical blogs under multiple categories — all with a clean, modern UI and seamless backend integration.    
 
 ---
 
@@ -40,14 +40,6 @@ It allows users to create, explore, and manage technical blogs under multiple ca
 
 Kobweb Blog serves as a full-stack **technical blogging platform** built entirely with **Kotlin**.  
 It demonstrates how to develop scalable, maintainable web applications using the **Kobweb Framework**, integrating both frontend and backend logic seamlessly.
-
----
-
-## 🧑‍💻 Author
-
-**Ashwani Kumar Singh**  
-📍 India  
-💼 [GitHub Profile](https://github.com/ashwanisingh8713)
 
 ---
 
