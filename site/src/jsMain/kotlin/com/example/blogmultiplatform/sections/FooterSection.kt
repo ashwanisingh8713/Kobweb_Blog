@@ -39,7 +39,7 @@ fun FooterSection() {
                     .fontFamily(FONT_FAMILY)
                     .fontSize(14.px)
                     .color(JsTheme.Primary.rgb),
-                text = "Ashwani Kumar"
+                text = "Abhishek Verma"
             )
         }
     }
