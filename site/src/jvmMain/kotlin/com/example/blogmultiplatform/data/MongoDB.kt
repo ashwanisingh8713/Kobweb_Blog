@@ -6,6 +6,8 @@ import com.example.blogmultiplatform.models.Newsletter
 import com.example.blogmultiplatform.models.Post
 import com.example.blogmultiplatform.models.PostWithoutDetails
 import com.example.blogmultiplatform.models.User
+import com.example.blogmultiplatform.models.ChatMessage
+import com.example.blogmultiplatform.models.ChatRoom
 import com.example.blogmultiplatform.util.Constants.DATABASE_NAME
 import com.example.blogmultiplatform.util.Constants.MAIN_POSTS_LIMIT
 import com.mongodb.client.model.Filters
@@ -44,6 +46,8 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
     private val userCollection = database.getCollection<User>("user")
     private val postCollection = database.getCollection<Post>("post")
     private val newsletterCollection = database.getCollection<Newsletter>("newsletter")
+    private val chatCollection = database.getCollection<ChatMessage>("chat")
+    private val chatRoomCollection = database.getCollection<ChatRoom>("chatRoom")
 
     override suspend fun addPost(post: Post): Boolean {
         return postCollection.insertOne(post).wasAcknowledged()
@@ -205,6 +209,83 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
         } catch (e: Exception) {
             context.logger.error(e.message.toString())
             null
+        }
+    }
+
+    // Chat-related methods
+    suspend fun sendMessage(message: ChatMessage): Boolean {
+        return try {
+            chatCollection.insertOne(message).wasAcknowledged()
+        } catch (e: Exception) {
+            context.logger.error("Error sending message: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun getMessages(senderId: String, receiverId: String, skip: Int = 0, limit: Int = 50): List<ChatMessage> {
+        return try {
+            chatCollection
+                .find(
+                    Filters.or(
+                        Filters.and(
+                            Filters.eq(ChatMessage::senderId.name, senderId),
+                            Filters.eq(ChatMessage::receiverId.name, receiverId)
+                        ),
+                        Filters.and(
+                            Filters.eq(ChatMessage::senderId.name, receiverId),
+                            Filters.eq(ChatMessage::receiverId.name, senderId)
+                        )
+                    )
+                )
+                .sort(descending(ChatMessage::timestamp.name))
+                .skip(skip)
+                .limit(limit)
+                .toList()
+                .reversed() // Reverse to get chronological order
+        } catch (e: Exception) {
+            context.logger.error("Error getting messages: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getChatRooms(userId: String): List<ChatRoom> {
+        return try {
+            chatRoomCollection
+                .find(Filters.`in`(ChatRoom::participants.name, userId))
+                .sort(descending(ChatRoom::createdAt.name))
+                .toList()
+        } catch (e: Exception) {
+            context.logger.error("Error getting chat rooms: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun createChatRoom(chatRoom: ChatRoom): Boolean {
+        return try {
+            // Check if chat room already exists between these participants
+            val existingRoom = chatRoomCollection
+                .find(Filters.all(ChatRoom::participants.name, chatRoom.participants))
+                .firstOrNull()
+
+            if (existingRoom != null) {
+                false // Room already exists
+            } else {
+                chatRoomCollection.insertOne(chatRoom).wasAcknowledged()
+            }
+        } catch (e: Exception) {
+            context.logger.error("Error creating chat room: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun getAllUsers(): List<User> {
+        return try {
+            userCollection
+                .find()
+                .toList()
+        } catch (e: Exception) {
+            context.logger.error("Error getting all users: ${e.message}")
+            emptyList()
         }
     }
 }

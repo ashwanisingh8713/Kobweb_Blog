@@ -8,6 +8,29 @@
     </option>
     <option name="pendingTurns">
       <map>
+        <entry key="91edaa61-8b4c-492b-aea3-3f327fc5d7fe">
+          <value>
+            <set>
+              <option value="0846d2d5-dfbe-4e3b-9b68-28eaa13df984" />
+              <option value="0c488261-2041-44db-8990-d582242179c4" />
+              <option value="18a8f115-8b40-4305-a29a-fd8b0f459e48" />
+              <option value="1aba91d5-5be5-48d7-a0e1-7e7f27fb653e" />
+              <option value="39dc282c-8689-4473-890d-199c91253571" />
+              <option value="6ab8bb3b-f719-48ae-9e3f-37f853786991" />
+              <option value="794ad4fb-010e-4634-b0a2-a48d1b723b1f" />
+              <option value="a6a84a94-4ba6-4db0-b8d2-26906e3547a6" />
+              <option value="addddd5a-74ce-446a-b922-c9544fa38c07" />
+              <option value="af6ad1a8-9b10-4938-8a7f-caffe42e6594" />
+              <option value="b3fa065c-4f13-47f7-8bf5-14ddd9521d8f" />
+              <option value="b7f7e57a-df1f-4eb9-affa-a05e0504d23b" />
+              <option value="bc11b718-a476-4163-9b0f-478d0882184b" />
+              <option value="c93dbcb4-fddd-4600-b95d-92b2be119b53" />
+              <option value="efeb444c-5a36-4218-a6e4-3a3377c3e392" />
+              <option value="f1841318-dce8-4636-87a2-f882b85f4af3" />
+              <option value="f30ec942-138a-4cba-8b53-f48f8f8e5bdb" />
+            </set>
+          </value>
+        </entry>
         <entry key="f9648d00-7465-480b-bcd2-71af94507c5d">
           <value>
             <set>
@@ -22,6 +45,22 @@
       </map>
     </option>
     <pendingWorkingSetItems>
+      <entry key="91edaa61-8b4c-492b-aea3-3f327fc5d7fe">
+        <set>
+          <option value="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+          <option value="file://$PROJECT_DIR$/site/src/commonMain/kotlin/com/example/blogmultiplatform/models/Chat.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/Chat.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/WebSocket.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/data/MongoDB.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/ChatComponent.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/VideoCallComponent.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/ChatPage.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/Posts.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/SimpleChatComponent.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/SimpleChatPage.kt" />
+          <option value="file://$PROJECT_DIR$/CHAT_FEATURE_README.md" />
+        </set>
+      </entry>
       <entry key="f9648d00-7465-480b-bcd2-71af94507c5d" />
     </pendingWorkingSetItems>
   </component>

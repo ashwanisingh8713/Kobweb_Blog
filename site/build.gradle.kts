@@ -49,6 +49,11 @@ kotlin {
             compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
             implementation(libs.mongodb.kotlin.driver)
             implementation(libs.kotlinx.serialization)
+            // Ktor server and WebSocket dependencies for signaling server
+            implementation("io.ktor:ktor-server-netty:2.3.5")
+            implementation("io.ktor:ktor-server-websockets:2.3.5")
+            implementation("io.ktor:ktor-server-content-negotiation:2.3.5")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.5")
         }
     }
 }

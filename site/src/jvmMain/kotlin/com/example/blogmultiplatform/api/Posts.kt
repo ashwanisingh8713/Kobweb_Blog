@@ -149,6 +149,16 @@ suspend fun searchPostsByCategory(context: ApiContext) {
     }
 }
 
+@Api(routeOverride = "getallusers")
+suspend fun getAllUsers(context: ApiContext) {
+    try {
+        val users = context.data.getValue<MongoDB>().getAllUsers()
+        context.res.setBody("Users retrieved: ${users.size} users found")
+    } catch (e: Exception) {
+        context.res.setBody("Error: ${e.message ?: "Failed to retrieve users"}")
+    }
+}
+
 @Api(routeOverride = "readselectedpost")
 suspend fun readSelectedPost(context: ApiContext) {
     val postId = context.req.params[POST_ID_PARAM]
