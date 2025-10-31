@@ -137,7 +137,7 @@ data class CreatePageUiState(
     )
 }
 
-@Page
+@Page("/admin/create")
 @Composable
 fun CreatePage() {
     isUserLoggedIn {

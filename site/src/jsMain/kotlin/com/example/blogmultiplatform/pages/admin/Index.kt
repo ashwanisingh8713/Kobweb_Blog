@@ -60,8 +60,9 @@ import org.jetbrains.compose.web.css.vh
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
+import com.example.blogmultiplatform.navigation.admin_home_route
 
-@Page
+@Page(admin_home_route)
 @Composable
 fun HomePage() {
     isUserLoggedIn {

@@ -86,7 +86,10 @@ private fun SidePanelInternal() {
             .height(100.vh)
             .position(Position.Fixed)
             .backgroundColor(JsTheme.Secondary.rgb)
-            .zIndex(9)
+            .zIndex(1001)
+            .styleModifier {
+                property("pointer-events", "auto")
+            }
     ) {
         Image(
             modifier = Modifier.margin(bottom = 60.px),
@@ -114,6 +117,7 @@ fun NavigationItems() {
         selected = context.route.path == Screen.AdminHome.route,
         icon = Res.PathIcon.home,
         onClick = {
+            console.log("Home navigation clicked")
             context.router.navigateTo(Screen.AdminHome.route)
         }
     )
@@ -123,6 +127,7 @@ fun NavigationItems() {
         title = "Create Post",
         icon = Res.PathIcon.create,
         onClick = {
+            console.log("Create Post navigation clicked")
             context.router.navigateTo(Screen.AdminCreate.route)
         }
     )
@@ -132,6 +137,7 @@ fun NavigationItems() {
         title = "My Posts",
         icon = Res.PathIcon.posts,
         onClick = {
+            console.log("My Posts navigation clicked")
             context.router.navigateTo(Screen.AdminMyPosts.route)
         }
     )
@@ -139,6 +145,7 @@ fun NavigationItems() {
         title = "Logout",
         icon = Res.PathIcon.logout,
         onClick = {
+            console.log("Logout clicked")
             logout()
             context.router.navigateTo(Screen.AdminLogin.route)
         }
@@ -157,7 +164,14 @@ private fun NavigationItem(
         modifier = NavigationItemStyle.toModifier()
             .then(modifier)
             .cursor(Cursor.Pointer)
-            .onClick { onClick() },
+            .styleModifier {
+                property("user-select", "none")
+                property("pointer-events", "auto")
+            }
+            .onClick {
+                console.log("NavigationItem clicked: $title")
+                onClick()
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         VectorIcon(
@@ -170,6 +184,11 @@ private fun NavigationItem(
                 .id(Id.navigationText)
                 .fontFamily(FONT_FAMILY)
                 .fontSize(16.px)
+                .cursor(Cursor.Pointer)
+                .onClick {
+                    console.log("SpanText clicked: $title")
+                    onClick()
+                }
                 .thenIf(
                     condition = selected,
                     other = Modifier.color(JsTheme.Primary.rgb)
@@ -264,10 +283,11 @@ fun OverflowSidePanel(
             .fillMaxWidth()
             .height(100.vh)
             .position(Position.Fixed)
-            .zIndex(9)
+            .zIndex(1002)
             .opacity(opacity)
             .styleModifier {
                 property("transition", "opacity 300ms")
+                property("pointer-events", "auto")
             }
             .backgroundColor(JsTheme.HalfBlack.rgb)
     ) {

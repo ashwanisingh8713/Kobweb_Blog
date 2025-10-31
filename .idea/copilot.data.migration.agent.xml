@@ -16,6 +16,7 @@
               <option value="18a8f115-8b40-4305-a29a-fd8b0f459e48" />
               <option value="1aba91d5-5be5-48d7-a0e1-7e7f27fb653e" />
               <option value="39dc282c-8689-4473-890d-199c91253571" />
+              <option value="685c52dc-ca6c-483b-8c3c-7d18e5496bcb" />
               <option value="6ab8bb3b-f719-48ae-9e3f-37f853786991" />
               <option value="794ad4fb-010e-4634-b0a2-a48d1b723b1f" />
               <option value="a6a84a94-4ba6-4db0-b8d2-26906e3547a6" />
@@ -23,11 +24,13 @@
               <option value="af6ad1a8-9b10-4938-8a7f-caffe42e6594" />
               <option value="b3fa065c-4f13-47f7-8bf5-14ddd9521d8f" />
               <option value="b7f7e57a-df1f-4eb9-affa-a05e0504d23b" />
+              <option value="bae48c30-88d7-46d3-97a3-b1926c237c74" />
               <option value="bc11b718-a476-4163-9b0f-478d0882184b" />
               <option value="c93dbcb4-fddd-4600-b95d-92b2be119b53" />
               <option value="efeb444c-5a36-4218-a6e4-3a3377c3e392" />
               <option value="f1841318-dce8-4636-87a2-f882b85f4af3" />
               <option value="f30ec942-138a-4cba-8b53-f48f8f8e5bdb" />
+              <option value="ffbd045d-81ec-479d-81be-1a53ab18ce3c" />
             </set>
           </value>
         </entry>
@@ -59,6 +62,12 @@
           <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/SimpleChatComponent.kt" />
           <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/SimpleChatPage.kt" />
           <option value="file://$PROJECT_DIR$/CHAT_FEATURE_README.md" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/admin/Index.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/admin/Create.kt" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/util/Functions.kt" />
+          <option value="file://$PROJECT_DIR$/ADMIN_NAVIGATION_FIX.md" />
+          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/SidePanel.kt" />
+          <option value="file://$PROJECT_DIR$/SIDEBAR_NAVIGATION_FIXED.md" />
         </set>
       </entry>
       <entry key="f9648d00-7465-480b-bcd2-71af94507c5d" />

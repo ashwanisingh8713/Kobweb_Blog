@@ -26,28 +26,49 @@ import kotlin.js.Date
 @Composable
 fun isUserLoggedIn(content: @Composable () -> Unit) {
     val context = rememberPageContext()
-    val remembered = remember { localStorage["remember"].toBoolean() }
+    val remembered = remember { localStorage["remember"]?.toBoolean() ?: false }
     val userId = remember { localStorage["userId"] }
     var userIdExists by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = Unit) {
-        userIdExists = if (!userId.isNullOrEmpty()) checkUserId(id = userId) else false
+        try {
+            if (!userId.isNullOrEmpty() && remembered) {
+                userIdExists = checkUserId(id = userId)
+            } else {
+                userIdExists = false
+            }
+        } catch (e: Exception) {
+            println("Error checking user ID: ${e.message}")
+            userIdExists = false
+        } finally {
+            isLoading = false
+        }
+
         if (!remembered || !userIdExists) {
             context.router.navigateTo(Screen.AdminLogin.route)
         }
     }
 
-    if (remembered && userIdExists) {
+    if (isLoading) {
+        println("Loading...")
+    } else if (remembered && userIdExists) {
         content()
     } else {
-        println("Loading...")
+        // Will redirect to login via LaunchedEffect
+        println("Redirecting to login...")
     }
 }
 
 fun logout() {
-    localStorage["remember"] = "false"
-    localStorage["userId"] = ""
-    localStorage["username"] = ""
+    localStorage.removeItem("remember")
+    localStorage.removeItem("userId")
+    localStorage.removeItem("username")
+    localStorage.removeItem("isLoggedIn")
+    localStorage.removeItem("userName")
+    localStorage.removeItem("profileComplete")
+    localStorage.removeItem("role")
+    localStorage.clear()
 }
 
 fun Modifier.noBorder(): Modifier {
