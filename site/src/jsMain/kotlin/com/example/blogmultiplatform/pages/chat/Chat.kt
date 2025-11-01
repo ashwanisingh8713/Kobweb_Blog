@@ -13,6 +13,7 @@ import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.text.SpanText
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlin.js.Date
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
@@ -32,7 +33,10 @@ fun ChatScreen() {
     js("console.log('ChatScreen mounted')")
 
     // UI state (in-memory per tab; no persistence)
-    var messages by remember { mutableStateOf(listOf("Welcome to the chat!")) }
+    data class ChatMessage(val text: String, val incoming: Boolean, val ts: Long = Date().getTime().toLong())
+
+    var messages by remember { mutableStateOf(listOf(ChatMessage("Welcome to the chat!", incoming = true))) }
+    var chatShareEnabled by remember { mutableStateOf(false) }
 
     // WebRTC state
     var localStream by remember { mutableStateOf<MediaStream?>(null) }
@@ -59,8 +63,44 @@ fun ChatScreen() {
     // prevent adding same tracks multiple times
     var tracksAdded by remember { mutableStateOf(false) }
 
-     // Ensure a <video> element exists and return it (create inside container if needed)
-     fun ensureVideoElement(id: String, containerId: String): HTMLVideoElement? {
+    // Optional BroadcastChannel for chat sharing across tabs (separate channel from signaling)
+    val bcChat = remember {
+        try {
+            val ch = js("new BroadcastChannel('webrtc-chat')")
+            js("console.log('BroadcastChannel chat created')")
+            ch
+        } catch (_: Throwable) {
+            js("console.log('BroadcastChannel chat not available')")
+            null
+        }
+    }
+
+    // Listen for incoming chat messages on bcChat
+    DisposableEffect(bcChat) {
+        val handler = fun(ev: dynamic) {
+            try {
+                val data = ev.data
+                if (data == null) return
+                val t = data.type as? String
+                if (t == "chat") {
+                    val from = data.from as? String
+                    // ignore our own messages
+                    if (from == clientId) return
+                    val text = data.text as? String ?: ""
+                    if (text.isNotEmpty()) {
+                        messages = messages + ChatMessage(text, incoming = true, ts = (data.time as? Number)?.toLong() ?: Date().getTime().toLong())
+                    }
+                }
+            } catch (e: Throwable) {
+                console.log("bcChat handler error:", e)
+            }
+        }
+        if (bcChat != null) bcChat.onmessage = handler
+        onDispose { try { bcChat?.close() } catch (_: Throwable) {} }
+    }
+
+    // Ensure a <video> element exists and return it (create inside container if needed)
+    fun ensureVideoElement(id: String, containerId: String): HTMLVideoElement? {
         var v = document.getElementById(id) as? HTMLVideoElement
         if (v == null) {
             // create a video element inside the container if container exists
@@ -367,8 +407,18 @@ fun ChatScreen() {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         for (msg in messages) {
                             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.px)) {
-                                Box(modifier = Modifier.margin(left = 40.px).backgroundColor(JsTheme.Primary.rgb).padding(10.px).borderRadius(r = 8.px)) {
-                                    SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).color(Colors.White), text = msg)
+                                if (msg.incoming) {
+                                    // incoming: left-aligned light bubble
+                                    Box(modifier = Modifier.margin(right = 40.px).backgroundColor(Colors.LightGray).padding(10.px).borderRadius(r = 8.px)) {
+                                        SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).color(Colors.Black), text = msg.text)
+                                    }
+                                } else {
+                                    // outgoing: right-aligned primary bubble
+                                    Box(modifier = Modifier.styleModifier { property("display", "flex"); property("justify-content", "flex-end") }) {
+                                        Box(modifier = Modifier.margin(left = 40.px).backgroundColor(JsTheme.Primary.rgb).padding(10.px).borderRadius(r = 8.px)) {
+                                            SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).color(Colors.White), text = msg.text)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -382,13 +432,35 @@ fun ChatScreen() {
                         val el = document.getElementById(inputId) as? org.w3c.dom.HTMLInputElement
                         val v = el?.value ?: ""
                         if (v.isNotBlank()) {
-                            messages = messages + v
+                            // append local outgoing message
+                            messages = messages + ChatMessage(v, incoming = false)
                             el?.value = ""
+                            // if sharing enabled, broadcast to other tabs
+                            if (chatShareEnabled && bcChat != null) {
+                                try {
+                                    val msg = js("({})")
+                                    msg.type = "chat"
+                                    msg.text = v
+                                    msg.from = clientId
+                                    msg.time = js("Date.now()")
+                                    bcChat.postMessage(msg)
+                                } catch (e: dynamic) {
+                                    console.log("failed to post chat message:", e)
+                                }
+                            }
                         }
                     } }) { Text("Send") }
                 }
 
-                SpanText(modifier = Modifier.margin(top = 8.px).fontFamily(FONT_FAMILY).fontSize(12.px).color(Colors.Gray), text = "Messages")
+                // Chat sharing toggle
+                Row(modifier = Modifier.fillMaxWidth().margin(top = 8.px), verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Checkbox, attrs = {
+                        if (chatShareEnabled) attr("checked", "checked")
+                        onClick { chatShareEnabled = !chatShareEnabled }
+                    })
+                    Box(modifier = Modifier.width(8.px))
+                    SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).fontSize(12.px).color(Colors.Gray), text = if (chatShareEnabled) "Chat sharing: ON — messages will be broadcast to other tabs" else "Chat sharing: OFF — messages remain local")
+                }
             }
         }
     }
