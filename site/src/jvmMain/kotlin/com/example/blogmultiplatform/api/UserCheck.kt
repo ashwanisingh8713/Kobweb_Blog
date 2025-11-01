@@ -19,13 +19,13 @@ suspend fun userCheck(context: ApiContext) {
             context.req.body?.decodeToString()?.let { Json.decodeFromString<User>(it) }
         val user = userRequest?.let {
             context.data.getValue<MongoDB>().checkUserExistence(
-                User(username = it.username, password = hashPassword(it.password))
+                User(username = it.username, password = hashPassword(it.password), role = it.role)
             )
         }
         if (user != null) {
             context.res.setBodyText(
                 Json.encodeToString(
-                    UserWithoutPassword(_id = user._id, username = user.username)
+                    UserWithoutPassword(_id = user._id, username = user.username, role = user.role)
                 )
             )
         } else {
@@ -68,7 +68,7 @@ suspend fun signUp(context: ApiContext) {
         if (createdUser != null) {
             context.res.setBodyText(
                 Json.encodeToString(
-                    UserWithoutPassword(_id = createdUser._id, username = createdUser.username)
+                    UserWithoutPassword(_id = createdUser._id, username = createdUser.username, role = createdUser.role)
                 )
             )
         } else {

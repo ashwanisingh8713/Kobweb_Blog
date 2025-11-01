@@ -67,6 +67,8 @@ fun LoginScreen() {
     val scope = rememberCoroutineScope()
     val context = rememberPageContext()
     var errorText by remember { mutableStateOf(" ") }
+    // New: role selection
+    var selectedRole by remember { mutableStateOf("client") }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -126,6 +128,30 @@ fun LoginScreen() {
                         attr("placeholder", "Password")
                     }
             )
+            // Role selection
+            Row(
+                modifier = Modifier
+                    .width(350.px)
+                    .margin(bottom = 20.px),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                SpanText(modifier = Modifier.margin(right = 12.px), text = "Role:")
+                Input(type = InputType.Radio, attrs = Modifier.toAttrs {
+                    attr("name", "role")
+                    attr("value", "client")
+                    if (selectedRole == "client") attr("checked", "")
+                    onClick { selectedRole = "client" }
+                })
+                SpanText(modifier = Modifier.margin(left = 8.px, right = 32.px), text = "Client")
+                Input(type = InputType.Radio, attrs = Modifier.margin(left = 24.px).toAttrs {
+                    attr("name", "role")
+                    attr("value", "developer")
+                    if (selectedRole == "developer") attr("checked", "")
+                    onClick { selectedRole = "developer" }
+                })
+                SpanText(modifier = Modifier.margin(left = 8.px), text = "Developer")
+            }
             Button(
                 attrs = Modifier
                     .margin(bottom = 24.px)
@@ -149,7 +175,8 @@ fun LoginScreen() {
                                 val user = checkUserExistence(
                                     user = User(
                                         username = username,
-                                        password = password
+                                        password = password,
+                                        role = selectedRole
                                     )
                                 )
                                 if (user != null) {
@@ -210,5 +237,6 @@ private fun rememberLoggedIn(
     if (user != null) {
         localStorage["userId"] = user._id
         localStorage["username"] = user.username
+        localStorage["role"] = user.role
     }
 }

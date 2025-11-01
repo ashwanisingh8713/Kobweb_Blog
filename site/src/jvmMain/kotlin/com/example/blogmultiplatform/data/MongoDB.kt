@@ -157,7 +157,8 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
                 .find(
                     Filters.and(
                         Filters.eq(User::username.name, user.username),
-                        Filters.eq(User::password.name, user.password)
+                        Filters.eq(User::password.name, user.password),
+                        Filters.eq(User::role.name, user.role)
                     )
                 ).firstOrNull()
         } catch (e: Exception) {

@@ -29,7 +29,6 @@ import com.varabyte.kobweb.core.Page
 import org.jetbrains.compose.web.css.px
 import com.varabyte.kobweb.core.PageContext
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import com.example.blogmultiplatform.models.User
 import com.example.blogmultiplatform.util.Id
 import com.varabyte.kobweb.compose.ui.modifiers.id
@@ -45,6 +44,8 @@ fun SignUpScreen(ctx: PageContext) {
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorDialogMessage by remember { mutableStateOf("") }
+    // New: role state
+    var selectedRole by remember { mutableStateOf("client") }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -98,6 +99,37 @@ fun SignUpScreen(ctx: PageContext) {
                         attr("placeholder", "Password")
                     }
             )
+            // Role selection
+            Row(
+                modifier = Modifier
+                    .width(350.px)
+                    .margin(bottom = 20.px),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                SpanText(modifier = Modifier.margin(right = 12.px), text = "Role:")
+                // Client radio
+                Input(type = InputType.Radio, attrs = Modifier.toAttrs {
+                    attr("name", "role")
+                    attr("value", "client")
+                    if (selectedRole == "client") attr("checked", "")
+                    onClick {
+                        selectedRole = "client"
+                    }
+                })
+                // Increased spacing after the client label
+                SpanText(modifier = Modifier.margin(left = 8.px, right = 32.px), text = "Client")
+                // Developer radio with left margin to create more space
+                Input(type = InputType.Radio, attrs = Modifier.margin(left = 24.px).toAttrs {
+                    attr("name", "role")
+                    attr("value", "developer")
+                    if (selectedRole == "developer") attr("checked", "")
+                    onClick {
+                        selectedRole = "developer"
+                    }
+                })
+                SpanText(modifier = Modifier.margin(left = 8.px), text = "Developer")
+            }
             Button(
                 attrs = Modifier
                     .margin(bottom = 24.px)
@@ -118,7 +150,7 @@ fun SignUpScreen(ctx: PageContext) {
                                 val password = (document.getElementById(Id.passwordInput) as? org.w3c.dom.HTMLInputElement)?.value ?: ""
                                 if (username.isNotEmpty() && password.isNotEmpty()) {
                                     signUpResult = SignUpResult.Loading(true)
-                                    val user = User(username = username, password = password)
+                                    val user = User(username = username, password = password, role = selectedRole)
                                     when (val result = createUserAccount(user)) {
                                         is SignUpResult.Success -> {
                                             signUpResult = null
