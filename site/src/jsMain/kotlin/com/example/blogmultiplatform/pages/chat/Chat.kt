@@ -12,6 +12,7 @@ import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.core.Page
 import com.varabyte.kobweb.silk.components.text.SpanText
 import kotlinx.browser.document
+import kotlinx.browser.window
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
@@ -29,9 +30,9 @@ import com.varabyte.kobweb.compose.ui.modifiers.id
 fun ChatScreen() {
     // Debug mount
     js("console.log('ChatScreen mounted')")
-    // UI state
+
+    // UI state (in-memory per tab; no persistence)
     var messages by remember { mutableStateOf(listOf("Welcome to the chat!")) }
-    var hasPreview by remember { mutableStateOf(false) }
 
     // WebRTC state
     var localStream by remember { mutableStateOf<MediaStream?>(null) }
@@ -267,70 +268,128 @@ fun ChatScreen() {
         if (lv != null) lv.srcObject = null
         val rv = document.getElementById(remoteVideoId) as? HTMLVideoElement
         if (rv != null) rv.srcObject = null
-        hasPreview = false
+    }
+
+    // Load saved messages for this tab on first composition
+    // LaunchedEffect(tabId) {
+    //     try {
+    //         val stored = sessionStorage.getItem("chatMessages_" + tabId)
+    //         if (stored != null) {
+    //             val arr = JSON.parse(stored) as Array<dynamic>
+    //             messages = arr.map { if (it == null) "" else it.toString() }
+    //         } else {
+    //             messages = listOf("Welcome to the chat!")
+    //         }
+    //     } catch (e: dynamic) {
+    //         console.log("Failed to load chat messages:", e)
+    //         messages = listOf("Welcome to the chat!")
+    //     }
+    // }
+
+    // Debug: log messages changes so we can see when a tab's messages update
+    LaunchedEffect(messages) {
+        try {
+            println("messages changed (local): ${'$'}{messages.size}")
+        } catch (_: Throwable) {}
+    }
+
+    // Prevent responding to storage events from other tabs (ignore cross-tab writes)
+    DisposableEffect(Unit) {
+        val handler = { e: dynamic ->
+            try {
+                console.log("storage event ignored in Chat (key):", e?.key, "newValue:", e?.newValue)
+            } catch (_: Throwable) {}
+        }
+        window.addEventListener("storage", handler)
+        onDispose { window.removeEventListener("storage", handler) }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.px)
+            .padding(20.px)
             .backgroundColor(JsTheme.LightGray.rgb),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         SpanText(
             modifier = Modifier
                 .fontFamily(FONT_FAMILY)
-                .fontSize(20.px)
-                .margin(bottom = 12.px),
-            text = "Chat (WebRTC Demo)"
+                .fontSize(22.px)
+                .margin(bottom = 16.px),
+            text = "Chat (WebRTC)"
         )
 
         Row(
             modifier = Modifier
-                .width(100.percent)
-                .height(220.px)
-                .backgroundColor(Colors.Black)
-                .borderRadius(r = 8.px)
-                .padding(12.px)
-                .margin(bottom = 12.px),
+                .fillMaxWidth()
+                .height(520.px)
+                .borderRadius(r = 10.px)
+                .padding(10.px),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(modifier = Modifier.width(48.percent).fillMaxHeight().id(localContainerId))
-            Box(modifier = Modifier.width(48.percent).fillMaxHeight().id(remoteContainerId))
-        }
+            // Video panel
+            Column(
+                modifier = Modifier
+                    .width(65.percent)
+                    .fillMaxHeight()
+                    .backgroundColor(Colors.White)
+                    .borderRadius(r = 8.px)
+                    .padding(12.px)
+            ) {
+                SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).fontSize(16.px).margin(bottom = 8.px), text = "Video")
 
-        Box(
-            modifier = Modifier
-                .width(100.percent)
-                .height(140.px)
-                .backgroundColor(Colors.White)
-                .borderRadius(r = 8.px)
-                .padding(12.px)
-                .margin(bottom = 12.px)
-                .styleModifier { property("overflow-y", "auto") }
-        ) {
-            // simple messages area
-            for (msg in messages) {
-                SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).margin(bottom = 6.px), text = msg)
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    Box(modifier = Modifier.width(48.percent).fillMaxHeight().backgroundColor(Colors.Black).borderRadius(r = 8.px).id(remoteContainerId)) {}
+                    Box(modifier = Modifier.width(4.px))
+                    Box(modifier = Modifier.width(48.percent).fillMaxHeight().backgroundColor(Colors.Black).borderRadius(r = 8.px).id(localContainerId)) {}
+                }
+
+                Row(modifier = Modifier.fillMaxWidth().margin(top = 12.px), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Button(attrs = { onClick { startLocalPreview() } }) { Text("Start Preview") }
+                    Button(attrs = { onClick { initiateCall() } }) { Text("Start Call") }
+                    Button(attrs = { onClick { hangup() } }) { Text("Hang Up") }
+                }
+            }
+
+            // Chat panel
+            Column(
+                modifier = Modifier
+                    .width(33.percent)
+                    .fillMaxHeight()
+                    .backgroundColor(Colors.White)
+                    .borderRadius(r = 8.px)
+                    .padding(12.px),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).fontSize(16.px).margin(bottom = 8.px), text = "Chat")
+
+                Box(modifier = Modifier.fillMaxWidth().height(380.px).styleModifier { property("overflow-y", "auto") }) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        for (msg in messages) {
+                            Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.px)) {
+                                Box(modifier = Modifier.margin(left = 40.px).backgroundColor(JsTheme.Primary.rgb).padding(10.px).borderRadius(r = 8.px)) {
+                                    SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).color(Colors.White), text = msg)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth().height(48.px), verticalAlignment = Alignment.CenterVertically) {
+                    Input(type = InputType.Text, attrs = { attr("id", inputId); attr("placeholder", "Type a message...") })
+                    Box(modifier = Modifier.width(8.px))
+                    Button(attrs = { onClick {
+                        val el = document.getElementById(inputId) as? org.w3c.dom.HTMLInputElement
+                        val v = el?.value ?: ""
+                        if (v.isNotBlank()) {
+                            messages = messages + v
+                            el?.value = ""
+                        }
+                    } }) { Text("Send") }
+                }
+
+                SpanText(modifier = Modifier.margin(top = 8.px).fontFamily(FONT_FAMILY).fontSize(12.px).color(Colors.Gray), text = "Messages")
             }
         }
-
-        Row(modifier = Modifier.width(100.percent).height(44.px), verticalAlignment = Alignment.CenterVertically) {
-            Input(type = InputType.Text, attrs = { attr("id", inputId); attr("placeholder", "Type a message...") })
-            Box(modifier = Modifier.width(8.px))
-            Button(attrs = { onClick {
-                val el = document.getElementById(inputId) as? org.w3c.dom.HTMLInputElement
-                val v = el?.value ?: ""
-                if (v.isNotBlank()) { messages = messages + v; el?.value = "" }
-            } }) { Text("Send") }
-            Box(modifier = Modifier.width(12.px))
-            Button(attrs = { onClick { startLocalPreview(); hasPreview = true } }) { Text("Start Preview") }
-            Box(modifier = Modifier.width(8.px))
-            Button(attrs = { onClick { initiateCall() } }) { Text("Start Call") }
-            Box(modifier = Modifier.width(8.px))
-            Button(attrs = { onClick { hangup() } }) { Text("Hang Up") }
-        }
-
-        SpanText(modifier = Modifier.margin(top = 12.px), text = "Open two tabs on this page. Start Preview in both, then Start Call in one tab.")
     }
 }
