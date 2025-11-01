@@ -11,6 +11,7 @@ import com.example.blogmultiplatform.util.Constants.MAIN_POSTS_LIMIT
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes.descending
 import com.mongodb.client.model.Updates
+import com.mongodb.client.model.UpdateOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.varabyte.kobweb.api.data.add
 import com.varabyte.kobweb.api.init.InitApi
@@ -201,6 +202,25 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
         } catch (e: Exception) {
             context.logger.error(e.message.toString())
             null
+        }
+    }
+
+    override suspend fun saveProfile(user: User): Boolean {
+        return try {
+            // Upsert by username (if _id exists use that instead)
+            val filter = if (user._id.isNotBlank()) Filters.eq("_id", user._id) else Filters.eq("username", user.username)
+            val updates = mutableListOf(
+                Updates.set("displayName", user.displayName),
+                Updates.set("bio", user.bio),
+                Updates.set("avatarUrl", user.avatarUrl),
+                Updates.set("role", user.role)
+            )
+            val options = UpdateOptions().upsert(true)
+            val res = userCollection.updateOne(filter, Updates.combine(updates), options)
+            res.wasAcknowledged()
+        } catch (e: Exception) {
+            context.logger.error(e.message.toString())
+            false
         }
     }
 }

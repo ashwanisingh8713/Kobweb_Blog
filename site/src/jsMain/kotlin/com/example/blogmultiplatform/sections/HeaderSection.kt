@@ -173,14 +173,16 @@ fun Header(
             onSearchIconClick = { fullSearchBarOpened = it }
         )
         Spacer()
-        // Chat link (use an anchor to force navigation)
-        A(href = Screen.ChatPage.route, attrs = {
-            style {
-                property("text-decoration", "none")
+        // Simple inline nav items: Chat and Profile
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Chat: client-side route
+            SpanText(modifier = Modifier.cursor(Cursor.Pointer).margin(right = 12.px).color(Colors.White).onClick { context.router.navigateTo(Screen.ChatPage.route) }, text = "Chat")
+            // Profile: use a plain anchor to ensure the route is reachable even without JS router firing
+            A(href = Screen.ProfilePage.route, attrs = {
+                style { property("text-decoration", "none") }
+            }) {
+                SpanText(modifier = Modifier.cursor(Cursor.Pointer).color(Colors.White), text = "Profile")
             }
-            // optional: add role/button styles via attributes if needed
-        }) {
-            SpanText(modifier = Modifier.cursor(Cursor.Pointer).margin(right = 0.px), text = "Chat")
         }
         Box(modifier = Modifier.width(8.px))
         ToggleSwitch(isOn = headerToggleOn, onToggle = {

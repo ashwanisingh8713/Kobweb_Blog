@@ -2,6 +2,7 @@ package com.example.blogmultiplatform.sections
 
 import androidx.compose.runtime.Composable
 import com.example.shared.JsTheme
+import com.example.blogmultiplatform.navigation.Screen
 import com.example.blogmultiplatform.util.Constants.FONT_FAMILY
 import com.varabyte.kobweb.compose.foundation.layout.Box
 import com.varabyte.kobweb.compose.foundation.layout.Row
@@ -15,6 +16,8 @@ import com.varabyte.kobweb.compose.ui.modifiers.fontFamily
 import com.varabyte.kobweb.compose.ui.modifiers.fontSize
 import com.varabyte.kobweb.compose.ui.modifiers.padding
 import com.varabyte.kobweb.silk.components.text.SpanText
+import org.jetbrains.compose.web.dom.A
+import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.px
 
 @Composable
@@ -34,13 +37,17 @@ fun FooterSection() {
                     .color(Colors.White),
                 text = "Copyright © 2025 • "
             )
-            SpanText(
-                modifier = Modifier
-                    .fontFamily(FONT_FAMILY)
-                    .fontSize(14.px)
-                    .color(JsTheme.Primary.rgb),
-                text = "Abhishek Verma"
-            )
+            A(href = Screen.ProfilePage.route, attrs = {
+                style { property("text-decoration", "none") }
+            }) {
+                SpanText(
+                    modifier = Modifier
+                        .fontFamily(FONT_FAMILY)
+                        .fontSize(14.px)
+                        .color(JsTheme.Primary.rgb),
+                    text = "Abhishek Verma"
+                )
+            }
         }
     }
 }

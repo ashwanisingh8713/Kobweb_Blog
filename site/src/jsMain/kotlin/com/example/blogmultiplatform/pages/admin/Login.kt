@@ -1,6 +1,7 @@
 package com.example.blogmultiplatform.pages.admin
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -49,12 +50,15 @@ import com.varabyte.kobweb.core.rememberPageContext
 import com.varabyte.kobweb.silk.components.graphics.Image
 import com.varabyte.kobweb.silk.components.text.SpanText
 import com.varabyte.kobweb.silk.style.toModifier
+import com.varabyte.kobweb.compose.ui.styleModifier
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.css.LineStyle
+import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Input
@@ -69,116 +73,85 @@ fun LoginScreen() {
     var errorText by remember { mutableStateOf(" ") }
     // New: role selection
     var selectedRole by remember { mutableStateOf("client") }
+    // Show/hide password
+    var showPassword by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(leftRight = 50.px, top = 80.px, bottom = 24.px)
-                .backgroundColor(JsTheme.LightGray.rgb),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                modifier = Modifier
-                    .margin(bottom = 50.px)
-                    .width(100.px),
-                src = Res.Image.logo,
-                alt = "Logo Image"
-            )
-            Input(
-                type = InputType.Text,
-                attrs = LoginInputStyle.toModifier()
-                    .id(Id.usernameInput)
+    Box(modifier = Modifier.fillMaxSize().styleModifier { property("min-height", "100vh"); property("display","flex"); property("align-items","center"); property("justify-content","center") }, contentAlignment = Alignment.Center) {
+        // Centered form card (auto width, constrained by max-width so it wraps content)
+        Box(modifier = Modifier.styleModifier { property("width", "auto"); property("max-width","900px"); property("background", "linear-gradient(180deg,#ffffff, #fbfbff)"); property("border-radius","14px"); property("box-shadow","0 20px 50px rgba(16,24,40,0.08)"); property("padding","28px"); property("margin","0 auto") }) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.styleModifier { property("width","100%") }) {
+                // Logo + title
+                Image(modifier = Modifier.margin(bottom = 8.px).width(84.px), src = Res.Image.logo, alt = "Logo")
+                SpanText(modifier = Modifier.fontFamily(FONT_FAMILY).fontSize(20.px).fontWeight(FontWeight.Bold).margin(bottom = 18.px), text = "Welcome back")
+
+                // Inputs
+                // container ensures inputs stretch to fit card width
+
+                Input(
+                    type = InputType.Text,
+                    attrs = LoginInputStyle.toModifier()
+                        .id(Id.usernameInput)
+                        .margin(bottom = 12.px)
+                        .width(100.percent)
+                        .height(52.px)
+                        .padding(leftRight = 18.px)
+                        .styleModifier { property("border-radius","10px"); property("box-shadow","inset 0 1px 2px rgba(16,24,40,0.04)") }
+                        .backgroundColor(Colors.White)
+                        .fontFamily(FONT_FAMILY)
+                        .fontSize(14.px)
+                        .outline(width = 0.px, style = LineStyle.None, color = Colors.Transparent)
+                        .toAttrs { attr("placeholder", "Username") }
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.margin(bottom = 12.px)) {
+                    val pwType = if (showPassword) InputType.Text else InputType.Password
+                    Input(
+                        type = pwType,
+                        attrs = LoginInputStyle.toModifier()
+                            .id(Id.passwordInput)
+                            .width(100.percent)
+                            .height(52.px)
+                            .padding(leftRight = 18.px)
+                            .styleModifier { property("border-radius","10px"); property("box-shadow","inset 0 1px 2px rgba(16,24,40,0.04)") }
+                            .backgroundColor(Colors.White)
+                            .fontFamily(FONT_FAMILY)
+                            .fontSize(14.px)
+                            .outline(width = 0.px, style = LineStyle.None, color = Colors.Transparent)
+                            .toAttrs { attr("placeholder", "Password") }
+                    )
+                    Box(modifier = Modifier.width(8.px))
+                    Button(attrs = Modifier.onClick { showPassword = !showPassword }.toAttrs {
+                        attr("style", "background:transparent; border:none; color:${JsTheme.Primary.rgb}; cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center;")
+                    }) {
+                        Box(modifier = Modifier.id("loginPwIcon").width(18.px).height(18.px))
+                    }
+                }
+
+                // Role toggle pills
+                Row(modifier = Modifier.margin(bottom = 16.px), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Button(attrs = { onClick { selectedRole = "client" }; attr("style","background:${if (selectedRole=="client") JsTheme.Primary.rgb else "transparent"}; color:${if (selectedRole=="client") "white" else JsTheme.Primary.rgb}; border:1px solid ${JsTheme.Primary.rgb}; padding:8px 14px; border-radius:999px; margin-right:8px;") }) { SpanText(text = "Client") }
+                    Button(attrs = { onClick { selectedRole = "developer" }; attr("style","background:${if (selectedRole=="developer") JsTheme.Primary.rgb else "transparent"}; color:${if (selectedRole=="developer") "white" else JsTheme.Primary.rgb}; border:1px solid ${JsTheme.Primary.rgb}; padding:8px 14px; border-radius:999px;") }) { SpanText(text = "Developer") }
+                }
+
+                // Sign in button
+                Button(attrs = Modifier
                     .margin(bottom = 12.px)
-                    .width(350.px)
-                    .height(54.px)
-                    .padding(leftRight = 20.px)
-                    .backgroundColor(Colors.White)
-                    .fontFamily(FONT_FAMILY)
-                    .fontSize(14.px)
-                    .outline(
-                        width = 0.px,
-                        style = LineStyle.None,
-                        color = Colors.Transparent
-                    )
-                    .toAttrs {
-                        attr("placeholder", "Username")
-                    }
-            )
-            Input(
-                type = InputType.Password,
-                attrs = LoginInputStyle.toModifier()
-                    .id(Id.passwordInput)
-                    .margin(bottom = 20.px)
-                    .width(350.px)
-                    .height(54.px)
-                    .padding(leftRight = 20.px)
-                    .backgroundColor(Colors.White)
-                    .fontFamily(FONT_FAMILY)
-                    .fontSize(14.px)
-                    .outline(
-                        width = 0.px,
-                        style = LineStyle.None,
-                        color = Colors.Transparent
-                    )
-                    .toAttrs {
-                        attr("placeholder", "Password")
-                    }
-            )
-            // Role selection
-            Row(
-                modifier = Modifier
-                    .width(350.px)
-                    .margin(bottom = 20.px),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                SpanText(modifier = Modifier.margin(right = 12.px), text = "Role:")
-                Input(type = InputType.Radio, attrs = Modifier.toAttrs {
-                    attr("name", "role")
-                    attr("value", "client")
-                    if (selectedRole == "client") attr("checked", "")
-                    onClick { selectedRole = "client" }
-                })
-                SpanText(modifier = Modifier.margin(left = 8.px, right = 32.px), text = "Client")
-                Input(type = InputType.Radio, attrs = Modifier.margin(left = 24.px).toAttrs {
-                    attr("name", "role")
-                    attr("value", "developer")
-                    if (selectedRole == "developer") attr("checked", "")
-                    onClick { selectedRole = "developer" }
-                })
-                SpanText(modifier = Modifier.margin(left = 8.px), text = "Developer")
-            }
-            Button(
-                attrs = Modifier
-                    .margin(bottom = 24.px)
-                    .width(350.px)
-                    .height(54.px)
+                    .width(100.percent)
+                    .height(50.px)
                     .backgroundColor(JsTheme.Primary.rgb)
                     .color(Colors.White)
-                    .borderRadius(r = 4.px)
+                    .borderRadius(r = 8.px)
                     .fontFamily(FONT_FAMILY)
                     .fontWeight(FontWeight.Medium)
-                    .fontSize(14.px)
+                    .fontSize(15.px)
                     .noBorder()
                     .cursor(Cursor.Pointer)
                     .onClick {
                         scope.launch {
-                            val username =
-                                (document.getElementById(Id.usernameInput) as HTMLInputElement).value
-                            val password =
-                                (document.getElementById(Id.passwordInput) as HTMLInputElement).value
+                            val username = (document.getElementById(Id.usernameInput) as HTMLInputElement).value
+                            val password = (document.getElementById(Id.passwordInput) as HTMLInputElement).value
                             if (username.isNotEmpty() && password.isNotEmpty()) {
-                                val user = checkUserExistence(
-                                    user = User(
-                                        username = username,
-                                        password = password,
-                                        role = selectedRole
-                                    )
-                                )
+                                val user = checkUserExistence(user = User(username = username, password = password, role = selectedRole))
                                 if (user != null) {
                                     rememberLoggedIn(remember = true, user = user)
                                     context.router.navigateTo(Screen.AdminHome.route)
@@ -194,38 +167,47 @@ fun LoginScreen() {
                             }
                         }
                     }
-                    .toAttrs()
-            ) {
-                SpanText(text = "Sign in")
+                    .toAttrs()) {
+                    SpanText(text = "Sign in")
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    SpanText(modifier = Modifier.color(Colors.Gray), text = "Don't have account? ")
+                    SpanText(modifier = Modifier.color(JsTheme.Primary.rgb).fontWeight(FontWeight.Bold).cursor(Cursor.Pointer).onClick { context.router.navigateTo(admin_signup_route) }, text = "Create Account")
+                }
+
+                SpanText(modifier = Modifier.margin(top = 12.px).fontFamily(FONT_FAMILY).color(Colors.Red).textAlign(TextAlign.Center), text = errorText)
             }
-            Row(
-                modifier = Modifier.width(350.px),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SpanText(
-                    modifier = Modifier.color(Colors.Gray),
-                    text = "Don't have account? "
-                )
-                SpanText(
-                    modifier = Modifier
-                        .color(JsTheme.Primary.rgb)
-                        .fontWeight(FontWeight.Bold)
-                        .margin(left = 4.px)
-                        .cursor(Cursor.Pointer)
-                        .onClick { context.router.navigateTo(admin_signup_route) },
-                    text = "Create Account"
-                )
-            }
-            SpanText(
-                modifier = Modifier
-                    .width(350.px)
-                    .color(Colors.Red)
-                    .textAlign(TextAlign.Center)
-                    .fontFamily(FONT_FAMILY),
-                text = errorText
-            )
         }
+    }
+
+    // Inject SVG icon & animate on toggle for password show/hide
+    LaunchedEffect(showPassword) {
+        try {
+            val id = "loginPwIcon"
+            val el = document.getElementById(id)
+            if (el != null) {
+                val svgOpen = """
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="${JsTheme.Primary.rgb}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="12" r="3" stroke="${JsTheme.Primary.rgb}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                """.trimIndent()
+                val svgOff = """
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.38 21.38 0 0 1 5.06-4.94" stroke="${JsTheme.Primary.rgb}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M1 1l22 22" stroke="${JsTheme.Primary.rgb}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                """.trimIndent()
+                el.innerHTML = if (showPassword) svgOff else svgOpen
+                try {
+                    val ed = el.asDynamic().style
+                    ed.transition = "transform 160ms ease"
+                    ed.transform = "scale(1.12)"
+                    window.setTimeout({ ed.transform = "scale(1)" }, 160)
+                } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {}
     }
 }
 

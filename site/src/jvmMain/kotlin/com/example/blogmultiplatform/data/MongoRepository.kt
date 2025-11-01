@@ -22,4 +22,7 @@ interface MongoRepository {
     suspend fun checkUserId(id: String): Boolean
     suspend fun subscribe(newsletter: Newsletter): String
     suspend fun createUser(user: User): User?
+
+    // Save or update a user's profile (upsert by username or _id)
+    suspend fun saveProfile(user: User): Boolean
 }
