@@ -39,7 +39,11 @@ import com.varabyte.kobweb.silk.components.icons.fa.FaXmark
 import com.varabyte.kobweb.silk.components.icons.fa.IconSize
 import com.varabyte.kobweb.silk.style.breakpoint.Breakpoint
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.browser.localStorage
+import com.varabyte.kobweb.silk.components.text.SpanText
+import org.jetbrains.compose.web.dom.A
+import org.jetbrains.compose.web.attributes.AttrsScope
 import org.w3c.dom.get
 import org.w3c.dom.set
 import org.jetbrains.compose.web.css.percent
@@ -169,7 +173,16 @@ fun Header(
             onSearchIconClick = { fullSearchBarOpened = it }
         )
         Spacer()
-        // Toggle switch (persists to localStorage)
+        // Chat link (use an anchor to force navigation)
+        A(href = Screen.ChatPage.route, attrs = {
+            style {
+                property("text-decoration", "none")
+            }
+            // optional: add role/button styles via attributes if needed
+        }) {
+            SpanText(modifier = Modifier.cursor(Cursor.Pointer).margin(right = 0.px), text = "Chat")
+        }
+        Box(modifier = Modifier.width(8.px))
         ToggleSwitch(isOn = headerToggleOn, onToggle = {
             headerToggleOn = it
             localStorage["headerToggle"] = headerToggleOn.toString()
