@@ -3,22 +3,42 @@
   <component name="AgentMigrationStateService">
     <option name="migrationStatus" value="IN_PROGRESS" />
     <option name="pendingSessionIds">
+      <option value="90732c82-ee4a-467d-8de2-5e6f4ba166fd" />
       <option value="91edaa61-8b4c-492b-aea3-3f327fc5d7fe" />
       <option value="f9648d00-7465-480b-bcd2-71af94507c5d" />
     </option>
     <option name="pendingTurns">
       <map>
+        <entry key="90732c82-ee4a-467d-8de2-5e6f4ba166fd">
+          <value>
+            <set>
+              <option value="2e9129c0-5ddb-4960-b4ee-d54147dbe2cf" />
+              <option value="34676e9c-8052-433f-b26d-bc71c61ea7ba" />
+              <option value="5c620668-291f-49ed-994c-e41ad67ffa63" />
+              <option value="babec541-5575-45b8-8efc-ae03d71efcab" />
+              <option value="d79406a0-f752-4fac-bc2b-52d0230520be" />
+              <option value="d834c3aa-971f-4e61-9b93-124e54f9a687" />
+              <option value="dfa32b3e-8546-4206-90b1-1ad84d621eaf" />
+              <option value="e5dfb7d7-fbd3-4154-921a-5b05d93ae8ed" />
+              <option value="fd8c24ec-0a1d-4267-af61-a76fe4f508cf" />
+            </set>
+          </value>
+        </entry>
         <entry key="91edaa61-8b4c-492b-aea3-3f327fc5d7fe">
           <value>
             <set>
               <option value="0846d2d5-dfbe-4e3b-9b68-28eaa13df984" />
               <option value="0c488261-2041-44db-8990-d582242179c4" />
+              <option value="161b7048-95c4-4058-a0bb-9bce5e2fdf3c" />
               <option value="18a8f115-8b40-4305-a29a-fd8b0f459e48" />
               <option value="1aba91d5-5be5-48d7-a0e1-7e7f27fb653e" />
               <option value="39dc282c-8689-4473-890d-199c91253571" />
+              <option value="3be9ebdf-a185-4f86-8241-d8054c642a61" />
+              <option value="5c48d743-3439-410a-8c60-fd28bf294dba" />
               <option value="685c52dc-ca6c-483b-8c3c-7d18e5496bcb" />
               <option value="6ab8bb3b-f719-48ae-9e3f-37f853786991" />
               <option value="794ad4fb-010e-4634-b0a2-a48d1b723b1f" />
+              <option value="8941b870-4d91-43cb-bc27-836f045291ea" />
               <option value="a6a84a94-4ba6-4db0-b8d2-26906e3547a6" />
               <option value="addddd5a-74ce-446a-b922-c9544fa38c07" />
               <option value="af6ad1a8-9b10-4938-8a7f-caffe42e6594" />
@@ -27,6 +47,7 @@
               <option value="bae48c30-88d7-46d3-97a3-b1926c237c74" />
               <option value="bc11b718-a476-4163-9b0f-478d0882184b" />
               <option value="c93dbcb4-fddd-4600-b95d-92b2be119b53" />
+              <option value="d504568f-3d90-4c34-927e-e23db4879fef" />
               <option value="efeb444c-5a36-4218-a6e4-3a3377c3e392" />
               <option value="f1841318-dce8-4636-87a2-f882b85f4af3" />
               <option value="f30ec942-138a-4cba-8b53-f48f8f8e5bdb" />
@@ -48,28 +69,14 @@
       </map>
     </option>
     <pendingWorkingSetItems>
-      <entry key="91edaa61-8b4c-492b-aea3-3f327fc5d7fe">
+      <entry key="90732c82-ee4a-467d-8de2-5e6f4ba166fd">
         <set>
-          <option value="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
-          <option value="file://$PROJECT_DIR$/site/src/commonMain/kotlin/com/example/blogmultiplatform/models/Chat.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/Chat.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/WebSocket.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/data/MongoDB.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/ChatComponent.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/VideoCallComponent.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/ChatPage.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jvmMain/kotlin/com/example/blogmultiplatform/api/Posts.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/SimpleChatComponent.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/SimpleChatPage.kt" />
-          <option value="file://$PROJECT_DIR$/CHAT_FEATURE_README.md" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/admin/Index.kt" />
           <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/pages/admin/Create.kt" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/util/Functions.kt" />
-          <option value="file://$PROJECT_DIR$/ADMIN_NAVIGATION_FIX.md" />
-          <option value="file://$PROJECT_DIR$/site/src/jsMain/kotlin/com/example/blogmultiplatform/components/SidePanel.kt" />
-          <option value="file://$PROJECT_DIR$/SIDEBAR_NAVIGATION_FIXED.md" />
+          <option value="file://$PROJECT_DIR$/tools/test_create_page.js" />
+          <option value="file://$PROJECT_DIR$/tools/package.json" />
         </set>
       </entry>
+      <entry key="91edaa61-8b4c-492b-aea3-3f327fc5d7fe" />
       <entry key="f9648d00-7465-480b-bcd2-71af94507c5d" />
     </pendingWorkingSetItems>
   </component>

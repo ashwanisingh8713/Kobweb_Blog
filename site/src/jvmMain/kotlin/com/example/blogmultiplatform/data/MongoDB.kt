@@ -35,10 +35,14 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
     // For a remote mongo database.
 
     //val connectionString = "mongodb+srv://ashwani_u:ashwani_p@cluster0.2k09rpz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-    val connectionString = "mongodb+srv://abhisheksfs6892:csS9PX9q1Tx76GMp@cluster0.rhaswg4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-
-
-//    private val client = MongoClient.create(System.getenv("MONGODB_URI"))
+    // Prefer an environment variable for the connection string to avoid committing credentials.
+    // If MONGODB_URI is not set, fall back to the existing connection string but log a warning.
+    private val connectionString: String = System.getenv("MONGODB_URI")?.takeIf { it.isNotBlank() }
+        ?: run {
+            // Fallback (already committed in repo). It's recommended to set MONGODB_URI in the environment.
+            context.logger.warn("MONGODB_URI not set; falling back to embedded connection string. Set MONGODB_URI for production use.")
+            "mongodb+srv://abhisheksfs6892:csS9PX9q1Tx76GMp@cluster0.rhaswg4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+        }
 
     private val client = MongoClient.create(connectionString)
 

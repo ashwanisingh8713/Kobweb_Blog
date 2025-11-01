@@ -24,7 +24,6 @@ import com.example.blogmultiplatform.util.addPost
 import com.example.blogmultiplatform.util.applyControlStyle
 import com.example.blogmultiplatform.util.applyStyle
 import com.example.blogmultiplatform.util.fetchSelectedPost
-import com.example.blogmultiplatform.util.getEditor
 import com.example.blogmultiplatform.util.getSelectedText
 import com.example.blogmultiplatform.util.isUserLoggedIn
 import com.example.blogmultiplatform.util.noBorder
@@ -42,11 +41,10 @@ import com.varabyte.kobweb.compose.foundation.layout.Column
 import com.varabyte.kobweb.compose.foundation.layout.Row
 import com.varabyte.kobweb.compose.ui.Alignment
 import com.varabyte.kobweb.compose.ui.Modifier
-import com.varabyte.kobweb.compose.ui.attrsModifier
 import com.varabyte.kobweb.compose.ui.graphics.Colors
+import com.varabyte.kobweb.compose.ui.styleModifier
 import com.varabyte.kobweb.compose.ui.modifiers.backgroundColor
 import com.varabyte.kobweb.compose.ui.modifiers.borderRadius
-import com.varabyte.kobweb.compose.ui.modifiers.classNames
 import com.varabyte.kobweb.compose.ui.modifiers.color
 import com.varabyte.kobweb.compose.ui.modifiers.cursor
 import com.varabyte.kobweb.compose.ui.modifiers.disabled
@@ -85,14 +83,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Input
-import org.jetbrains.compose.web.dom.Li
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.TextArea
-import org.jetbrains.compose.web.dom.Ul
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.get
@@ -106,8 +101,9 @@ data class CreatePageUiState(
     var id: String = "",
     var title: String = "",
     var subtitle: String = "",
-    var thumbnail: String = "",
-    var thumbnailInputDisabled: Boolean = true,
+    var thumbnail: String = "https://via.placeholder.com/400x200",
+    // true = user wants to paste a URL; false = user will upload a file
+    var thumbnailUseUrl: Boolean = true,
     var content: String = "",
     var category: Category = Category.Technology,
     var buttonText: String = "Create",
@@ -161,8 +157,7 @@ fun CreateScreen() {
             val postId = context.route.params[POST_ID_PARAM] ?: ""
             val response = fetchSelectedPost(id = postId)
             if (response is ApiResponse.Success) {
-                (document.getElementById(Id.editor) as HTMLTextAreaElement).value =
-                    response.data.content
+                // Set state instead of writing to DOM directly
                 uiState = uiState.copy(
                     id = response.data._id,
                     title = response.data.title,
@@ -175,10 +170,30 @@ fun CreateScreen() {
                     popular = response.data.popular,
                     sponsored = response.data.sponsored
                 )
+                // Update the actual DOM element values so the inputs reflect the new state
+                try {
+                    (document.getElementById(Id.titleInput) as? HTMLInputElement)?.value = response.data.title
+                    (document.getElementById(Id.subtitleInput) as? HTMLInputElement)?.value = response.data.subtitle
+                    (document.getElementById(Id.thumbnailInput) as? HTMLInputElement)?.value = response.data.thumbnail
+                    (document.getElementById(Id.editor) as? HTMLTextAreaElement)?.value = response.data.content
+                    document.getElementById(Id.editorPreview)?.innerHTML = response.data.content
+                } catch (e: Throwable) {
+                    console.log("DOM update error:", e.message)
+                }
             }
         } else {
-            (document.getElementById(Id.editor) as HTMLTextAreaElement).value = ""
+            // Clear state instead of touching DOM
             uiState = uiState.reset()
+            // Clear DOM values as well
+            try {
+                (document.getElementById(Id.titleInput) as? HTMLInputElement)?.value = ""
+                (document.getElementById(Id.subtitleInput) as? HTMLInputElement)?.value = ""
+                (document.getElementById(Id.thumbnailInput) as? HTMLInputElement)?.value = ""
+                (document.getElementById(Id.editor) as? HTMLTextAreaElement)?.value = ""
+                document.getElementById(Id.editorPreview)?.innerHTML = ""
+            } catch (e: Throwable) {
+                console.log("DOM clear error:", e.message)
+            }
         }
     }
 
@@ -277,7 +292,13 @@ fun CreateScreen() {
                         .fontSize(16.px)
                         .toAttrs {
                             attr("placeholder", "Title")
-                            attr("value", uiState.title)
+                            // Keep value as an attribute so the input reflects state changes
+                            // Use the Compose-controlled value API so the input updates with state
+                            value(uiState.title)
+                             onInput { event ->
+                                console.log("Title input change ->", event.value)
+                                uiState = uiState.copy(title = event.value)
+                            }
                         }
                 )
                 Input(
@@ -294,7 +315,13 @@ fun CreateScreen() {
                         .fontSize(16.px)
                         .toAttrs {
                             attr("placeholder", "Subtitle")
-                            attr("value", uiState.subtitle)
+                            // Keep value as an attribute so the input reflects state changes
+                            // Use the Compose-controlled value API so the input updates with state
+                            value(uiState.subtitle)
+                             onInput { event ->
+                                console.log("Subtitle input change ->", event.value)
+                                uiState = uiState.copy(subtitle = event.value)
+                            }
                         }
                 )
                 CategoryDropdown(
@@ -311,8 +338,12 @@ fun CreateScreen() {
                 ) {
                     Switch(
                         modifier = Modifier.margin(right = 8.px),
-                        checked = !uiState.thumbnailInputDisabled,
-                        onCheckedChange = { uiState = uiState.copy(thumbnailInputDisabled = !it) },
+                        // When checked = true, user wants to paste a URL
+                        checked = uiState.thumbnailUseUrl,
+                        onCheckedChange = {
+                            console.log("Thumbnail use URL toggled ->", it)
+                            uiState = uiState.copy(thumbnailUseUrl = it)
+                        },
                         size = SwitchSize.MD
                     )
                     SpanText(
@@ -325,7 +356,8 @@ fun CreateScreen() {
                 }
                 ThumbnailUploader(
                     thumbnail = uiState.thumbnail,
-                    thumbnailInputDisabled = uiState.thumbnailInputDisabled,
+                    // pass disabled = not using URL (i.e., upload mode when false)
+                    thumbnailInputDisabled = !uiState.thumbnailUseUrl,
                     onThumbnailSelect = { filename, file ->
                         (document.getElementById(Id.thumbnailInput) as HTMLInputElement).value =
                             filename
@@ -335,80 +367,126 @@ fun CreateScreen() {
                 EditorControls(
                     breakpoint = breakpoint,
                     editorVisibility = uiState.editorVisibility,
-                    onEditorVisibilityChange = {
-                        uiState = uiState.copy(
-                            editorVisibility = !uiState.editorVisibility
-                        )
+                    editorContent = uiState.content,
+                    onEditorVisibilityChange = { content ->
+                        uiState = uiState.copy(editorVisibility = !uiState.editorVisibility)
+                        document.getElementById(Id.editorPreview)?.innerHTML = content
+                        try {
+                            js("hljs.highlightAll()") as Unit
+                        } catch (e: Throwable) {
+                            console.log("Highlight error: ${e.message}")
+                        }
                     },
-                    onLinkClick = {
-                        uiState = uiState.copy(linkPopup = true)
-                    },
-                    onImageClick = {
-                        uiState = uiState.copy(imagePopup = true)
+                     onLinkClick = {
+                         uiState = uiState.copy(linkPopup = true)
+                     },
+                     onImageClick = {
+                         uiState = uiState.copy(imagePopup = true)
+                     }
+                 )
+                Editor(
+                    editorVisibility = uiState.editorVisibility,
+                    content = uiState.content,
+                    onContentChange = { content ->
+                        uiState = uiState.copy(content = content)
                     }
                 )
-                Editor(editorVisibility = uiState.editorVisibility)
                 CreateButton(
                     text = uiState.buttonText,
                     onClick = {
-                        uiState =
-                            uiState.copy(title = (document.getElementById(Id.titleInput) as HTMLInputElement).value)
-                        uiState =
-                            uiState.copy(subtitle = (document.getElementById(Id.subtitleInput) as HTMLInputElement).value)
-                        uiState =
-                            uiState.copy(content = (document.getElementById(Id.editor) as HTMLTextAreaElement).value)
-                        if (!uiState.thumbnailInputDisabled) {
-                            uiState =
-                                uiState.copy(thumbnail = (document.getElementById(Id.thumbnailInput) as HTMLInputElement).value)
+                        console.log("Create button clicked")
+                        console.log("Current state:", uiState)
+
+                        // Get the latest content from the editor
+                        val editorContent = try {
+                            (document.getElementById(Id.editor) as? HTMLTextAreaElement)?.value ?: uiState.content
+                        } catch (e: Exception) {
+                            console.log("Error getting editor content:", e.message)
+                            uiState.content
                         }
+
+                        // Update content from editor
+                        val finalContent = if (editorContent.isNotEmpty()) editorContent else uiState.content
+                        uiState = uiState.copy(content = finalContent)
+
+                        console.log("Form validation:")
+                        console.log("Title: '${uiState.title}'")
+                        console.log("Subtitle: '${uiState.subtitle}'")
+                        console.log("Thumbnail: '${uiState.thumbnail}'")
+                        console.log("Content: '${finalContent}'")
+
                         if (
                             uiState.title.isNotEmpty() &&
                             uiState.subtitle.isNotEmpty() &&
                             uiState.thumbnail.isNotEmpty() &&
-                            uiState.content.isNotEmpty()
+                            finalContent.isNotEmpty()
                         ) {
+                            console.log("Form validation passed, submitting...")
                             scope.launch {
-                                if (hasPostIdParam) {
-                                    val result = updatePost(
-                                        Post(
-                                            _id = uiState.id,
-                                            title = uiState.title,
-                                            subtitle = uiState.subtitle,
-                                            thumbnail = uiState.thumbnail,
-                                            content = uiState.content,
-                                            category = uiState.category,
-                                            popular = uiState.popular,
-                                            main = uiState.main,
-                                            sponsored = uiState.sponsored
+                                try {
+                                    if (hasPostIdParam) {
+                                        console.log("Updating existing post...")
+                                        val result = updatePost(
+                                            Post(
+                                                _id = uiState.id,
+                                                title = uiState.title,
+                                                subtitle = uiState.subtitle,
+                                                thumbnail = uiState.thumbnail,
+                                                content = finalContent,
+                                                category = uiState.category,
+                                                popular = uiState.popular,
+                                                main = uiState.main,
+                                                sponsored = uiState.sponsored
+                                            )
                                         )
-                                    )
-                                    if (result) {
-                                        context.router.navigateTo(Screen.AdminSuccess.postUpdated())
-                                    }
-                                } else {
-                                    val result = addPost(
-                                        Post(
-                                            author = localStorage["username"].toString(),
-                                            title = uiState.title,
-                                            subtitle = uiState.subtitle,
-                                            date = Date.now(),
-                                            thumbnail = uiState.thumbnail,
-                                            content = uiState.content,
-                                            category = uiState.category,
-                                            popular = uiState.popular,
-                                            main = uiState.main,
-                                            sponsored = uiState.sponsored
+                                        if (result) {
+                                            console.log("Post updated successfully")
+                                            context.router.navigateTo(Screen.AdminSuccess.postUpdated())
+                                        } else {
+                                            console.log("Failed to update post")
+                                            uiState = uiState.copy(messagePopup = true)
+                                        }
+                                    } else {
+                                        console.log("Creating new post...")
+                                        val result = addPost(
+                                            Post(
+                                                author = localStorage["username"] ?: "Unknown",
+                                                title = uiState.title,
+                                                subtitle = uiState.subtitle,
+                                                date = Date.now(),
+                                                thumbnail = uiState.thumbnail,
+                                                content = finalContent,
+                                                category = uiState.category,
+                                                popular = uiState.popular,
+                                                main = uiState.main,
+                                                sponsored = uiState.sponsored
+                                            )
                                         )
-                                    )
-                                    if (result) {
-                                        context.router.navigateTo(Screen.AdminSuccess.route)
+                                        if (result) {
+                                            console.log("Post created successfully")
+                                            context.router.navigateTo(Screen.AdminSuccess.route)
+                                        } else {
+                                            console.log("Failed to create post")
+                                            uiState = uiState.copy(messagePopup = true)
+                                        }
                                     }
+                                } catch (e: Exception) {
+                                    console.log("Error during post submission:", e.message)
+                                    uiState = uiState.copy(messagePopup = true)
                                 }
                             }
                         } else {
+                            console.log("Form validation failed")
+                            val missingFields = mutableListOf<String>()
+                            if (uiState.title.isEmpty()) missingFields.add("Title")
+                            if (uiState.subtitle.isEmpty()) missingFields.add("Subtitle")
+                            if (uiState.thumbnail.isEmpty()) missingFields.add("Thumbnail")
+                            if (finalContent.isEmpty()) missingFields.add("Content")
+
+                            console.log("Missing fields: ${missingFields.joinToString(", ")}")
                             scope.launch {
                                 uiState = uiState.copy(messagePopup = true)
-                                delay(2000)
+                                delay(3000)
                                 uiState = uiState.copy(messagePopup = false)
                             }
                         }
@@ -419,7 +497,7 @@ fun CreateScreen() {
     }
     if (uiState.messagePopup) {
         MessagePopup(
-            message = "Please fill out all fields.",
+            message = "Please fill out all required fields: Title, Subtitle, Thumbnail, and Content.",
             onDialogDismiss = { uiState = uiState.copy(messagePopup = false) }
         )
     }
@@ -453,6 +531,87 @@ fun CreateScreen() {
             }
         )
     }
+    // Place sticky bar so the button is always accessible
+    StickyCreateBar(text = uiState.buttonText) {
+        // reuse the same click handler as the inline CreateButton - call the existing click logic by simulating a click
+        // We'll perform the same validation & submit logic inline for clarity
+        console.log("Sticky Create clicked")
+        val editorContent = try {
+            (document.getElementById(Id.editor) as? HTMLTextAreaElement)?.value ?: uiState.content
+        } catch (e: Exception) {
+            console.log("Error getting editor content:", e.message)
+            uiState.content
+        }
+        val finalContent = if (editorContent.isNotEmpty()) editorContent else uiState.content
+        uiState = uiState.copy(content = finalContent)
+
+        if (
+            uiState.title.isNotEmpty() &&
+            uiState.subtitle.isNotEmpty() &&
+            uiState.thumbnail.isNotEmpty() &&
+            finalContent.isNotEmpty()
+        ) {
+            scope.launch {
+                try {
+                    if (hasPostIdParam) {
+                        val result = updatePost(
+                            Post(
+                                _id = uiState.id,
+                                title = uiState.title,
+                                subtitle = uiState.subtitle,
+                                thumbnail = uiState.thumbnail,
+                                content = finalContent,
+                                category = uiState.category,
+                                popular = uiState.popular,
+                                main = uiState.main,
+                                sponsored = uiState.sponsored
+                            )
+                        )
+                        if (result) {
+                            context.router.navigateTo(Screen.AdminSuccess.postUpdated())
+                        } else {
+                            uiState = uiState.copy(messagePopup = true)
+                        }
+                    } else {
+                        val result = addPost(
+                            Post(
+                                author = localStorage["username"] ?: "Unknown",
+                                title = uiState.title,
+                                subtitle = uiState.subtitle,
+                                date = Date.now(),
+                                thumbnail = uiState.thumbnail,
+                                content = finalContent,
+                                category = uiState.category,
+                                popular = uiState.popular,
+                                main = uiState.main,
+                                sponsored = uiState.sponsored
+                            )
+                        )
+                        if (result) {
+                            context.router.navigateTo(Screen.AdminSuccess.route)
+                        } else {
+                            uiState = uiState.copy(messagePopup = true)
+                        }
+                    }
+                } catch (e: Exception) {
+                    console.log("Error during sticky post submission:", e.message)
+                    uiState = uiState.copy(messagePopup = true)
+                }
+            }
+        } else {
+            val missingFields = mutableListOf<String>()
+            if (uiState.title.isEmpty()) missingFields.add("Title")
+            if (uiState.subtitle.isEmpty()) missingFields.add("Subtitle")
+            if (uiState.thumbnail.isEmpty()) missingFields.add("Thumbnail")
+            if (finalContent.isEmpty()) missingFields.add("Content")
+            console.log("Missing fields (sticky): ${missingFields.joinToString(", ")}")
+            scope.launch {
+                uiState = uiState.copy(messagePopup = true)
+                delay(3000)
+                uiState = uiState.copy(messagePopup = false)
+            }
+        }
+    }
 }
 
 @Composable
@@ -482,15 +641,19 @@ fun CategoryDropdown(
                 .padding(leftRight = 20.px)
                 .noBorder() // Remove border line
                 .toAttrs {
+                    // Keep value as an attribute so the select reflects `selectedCategory` state
+                    // Use the Compose-controlled value API so the select updates with state
+                    // value(selectedCategory.name)
+                    // Use attribute binding so the select reflects `selectedCategory` state
                     attr("value", selectedCategory.name)
-                    onChange { event ->
-                        val value = event.value
-                        val category = Category.entries.find { it.name == value }
-                        if (category != null) {
-                            onCategorySelect(category)
-                        }
-                    }
-                }
+                     onChange { event ->
+                         val value = event.value
+                         val category = Category.entries.find { it.name == value }
+                         if (category != null) {
+                             onCategorySelect(category)
+                         }
+                     }
+                 }
         ) {
             Category.entries.forEach { category ->
                 org.jetbrains.compose.web.dom.Option(
@@ -527,38 +690,59 @@ fun ThumbnailUploader(
                 .noBorder()
                 .fontFamily(FONT_FAMILY)
                 .fontSize(16.px)
+                // disable the text input when in upload mode
                 .thenIf(
                     condition = thumbnailInputDisabled,
                     other = Modifier.disabled()
                 )
                 .toAttrs {
                     attr("placeholder", "Thumbnail")
-                    attr("value", thumbnail)
-                }
+                    // Use controlled value binding so input reflects `thumbnail` state
+                    // Use the Compose-controlled value API so the input updates with state
+                    value(thumbnail)
+                     if (!thumbnailInputDisabled) {
+                        onInput { event ->
+                            console.log("Thumbnail URL input ->", event.value)
+                            onThumbnailSelect(event.value, event.value)
+                        }
+                     }
+                 }
         )
         Button(
             attrs = Modifier
                 .onClick {
-                    document.loadDataUrlFromDisk(
-                        accept = "image/png, image/jpeg",
-                        onLoad = {
-                            onThumbnailSelect(filename, it)
+                    console.log("Upload button clicked; thumbnailInputDisabled=", thumbnailInputDisabled)
+                    // open file picker only when upload mode is active (i.e., text input is disabled)
+                    if (thumbnailInputDisabled) {
+                        // In our semantics, thumbnailInputDisabled == true means text input disabled -> upload mode
+                        // Use the library function correctly: pass `document` as the receiver and capture the load context and data URL
+                        // Call as an extension on Document. onLoad is a LoadContext.(String) -> Unit receiver lambda,
+                        // so `this` inside the lambda is the LoadContext and receives the data URL as the parameter.
+                        document.loadDataUrlFromDisk("image/png, image/jpeg", { /* onError -> ignore */ }) { dataUrl ->
+                            // The lambda is a receiver-style callback where the receiver contains file metadata.
+                            // Safely access the filename from the receiver using dynamic access so the property is stable
+                            // across compiler name-mangling and to avoid referencing an undefined local variable.
+                            val filename = (this.asDynamic().filename as? String) ?: "unknown"
+                            console.log("Loaded file -> filename:", filename)
+                            onThumbnailSelect(filename, dataUrl)
                         }
-                    )
-                }
-                .fillMaxHeight()
-                .padding(leftRight = 24.px)
-                .backgroundColor(if (!thumbnailInputDisabled) JsTheme.Gray.rgb else JsTheme.Primary.rgb)
-                .color(if (!thumbnailInputDisabled) JsTheme.DarkGray.rgb else Colors.White)
-                .borderRadius(r = 4.px)
-                .noBorder()
-                .fontFamily(FONT_FAMILY)
-                .fontWeight(FontWeight.Medium)
-                .fontSize(14.px)
-                .thenIf(
-                    condition = !thumbnailInputDisabled,
-                    other = Modifier.disabled()
-                )
+                     }
+                 }
+                 .fillMaxHeight()
+                 .padding(leftRight = 24.px)
+                 // style as active when upload mode (thumbnailInputDisabled == true)
+                 .backgroundColor(if (thumbnailInputDisabled) JsTheme.Primary.rgb else JsTheme.Gray.rgb)
+                 .color(if (thumbnailInputDisabled) Colors.White else JsTheme.DarkGray.rgb)
+                 .borderRadius(r = 4.px)
+                 .noBorder()
+                 .fontFamily(FONT_FAMILY)
+                 .fontWeight(FontWeight.Medium)
+                 .fontSize(14.px)
+                 .cursor(if (thumbnailInputDisabled) Cursor.Pointer else Cursor.NotAllowed)
+                 .thenIf(
+                     condition = !thumbnailInputDisabled,
+                     other = Modifier.disabled()
+                 )
                 .toAttrs()
         ) {
             SpanText(text = "Upload")
@@ -570,9 +754,10 @@ fun ThumbnailUploader(
 fun EditorControls(
     breakpoint: Breakpoint,
     editorVisibility: Boolean,
+    editorContent: String,
     onLinkClick: () -> Unit,
     onImageClick: () -> Unit,
-    onEditorVisibilityChange: () -> Unit
+    onEditorVisibilityChange: (String) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         SimpleGrid(
@@ -589,6 +774,7 @@ fun EditorControls(
                     EditorControlView(
                         control = it,
                         onClick = {
+                            console.log("Editor control clicked ->", it.name)
                             applyControlStyle(
                                 editorControl = it,
                                 onLinkClick = onLinkClick,
@@ -619,9 +805,8 @@ fun EditorControls(
                         )
                         .noBorder()
                         .onClick {
-                            onEditorVisibilityChange()
-                            document.getElementById(Id.editorPreview)?.innerHTML = getEditor().value
-                            js("hljs.highlightAll()") as Unit
+                            // Use the provided editorContent instead of reading DOM
+                            onEditorVisibilityChange(editorContent)
                         }
                         .toAttrs()
                 ) {
@@ -660,7 +845,11 @@ fun EditorControlView(
 }
 
 @Composable
-fun Editor(editorVisibility: Boolean) {
+fun Editor(
+    editorVisibility: Boolean,
+    content: String = "",
+    onContentChange: (String) -> Unit = {}
+) {
     Box(modifier = Modifier.fillMaxWidth()) {
         TextArea(
             attrs = Modifier
@@ -691,6 +880,10 @@ fun Editor(editorVisibility: Boolean) {
                 .fontSize(16.px)
                 .toAttrs {
                     attr("placeholder", "Type here...")
+                    value(content)
+                    onInput { event ->
+                        onContentChange(event.value)
+                    }
                 }
         )
         Div(
@@ -722,18 +915,56 @@ fun CreateButton(
 ) {
     Button(
         attrs = Modifier
-            .onClick { onClick() }
+            .onClick {
+                console.log("Create button physically clicked!")
+                onClick()
+            }
             .fillMaxWidth()
             .height(54.px)
-            .margin(top = 24.px)
+            .margin(top = 24.px, bottom = 50.px) // Add bottom margin for visibility
             .backgroundColor(JsTheme.Primary.rgb)
             .color(Colors.White)
             .borderRadius(r = 4.px)
             .noBorder()
             .fontFamily(FONT_FAMILY)
             .fontSize(16.px)
+            .fontWeight(FontWeight.Bold) // Make text bold
+            .cursor(Cursor.Pointer) // Ensure cursor changes
             .toAttrs()
     ) {
         SpanText(text = text)
+    }
+}
+
+@Composable
+fun StickyCreateBar(
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .styleModifier {
+                property("position", "fixed")
+                property("bottom", "20px")
+                property("left", "0")
+                property("z-index", "2000")
+                property("display", "flex")
+                property("justify-content", "center")
+                property("pointer-events", "none")
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .styleModifier {
+                    property("pointer-events", "auto")
+                }
+                .maxWidth(700.px)
+        ) {
+            CreateButton(
+                text = text,
+                onClick = onClick
+            )
+        }
     }
 }
