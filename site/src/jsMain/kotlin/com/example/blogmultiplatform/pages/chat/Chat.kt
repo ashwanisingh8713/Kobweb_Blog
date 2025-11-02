@@ -329,7 +329,7 @@ fun ChatScreen() {
     // Debug: log messages changes so we can see when a tab's messages update
     LaunchedEffect(messages) {
         try {
-            println("messages changed (local): ${'$'}{messages.size}")
+            println("messages changed (local): ${messages.size}")
         } catch (_: Throwable) {}
     }
 

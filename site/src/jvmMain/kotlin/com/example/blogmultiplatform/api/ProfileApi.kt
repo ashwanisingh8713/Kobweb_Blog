@@ -8,7 +8,6 @@ import com.varabyte.kobweb.api.data.getValue
 import com.varabyte.kobweb.api.http.setBodyText
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 
 @Api(routeOverride = "saveprofile")
 suspend fun saveProfile(context: ApiContext) {
@@ -18,6 +17,15 @@ suspend fun saveProfile(context: ApiContext) {
             context.res.setBodyText(Json.encodeToString("Invalid request body."))
             return
         }
+        // convert User to Profile and upsert into profile collection
+        val profile = com.example.blogmultiplatform.models.Profile(
+            _id = userRequest._id ?: "",
+            username = userRequest.username,
+            displayName = userRequest.displayName,
+            bio = userRequest.bio,
+            avatarUrl = userRequest.avatarUrl,
+            role = userRequest.role
+        )
         val result = context.data.getValue<MongoDB>().saveProfile(userRequest)
         context.res.setBodyText(Json.encodeToString(result))
     } catch (e: Exception) {

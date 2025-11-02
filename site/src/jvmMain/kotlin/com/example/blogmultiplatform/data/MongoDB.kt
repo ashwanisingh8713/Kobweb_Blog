@@ -5,6 +5,7 @@ import com.example.blogmultiplatform.models.Constants.POSTS_PER_PAGE
 import com.example.blogmultiplatform.models.Newsletter
 import com.example.blogmultiplatform.models.Post
 import com.example.blogmultiplatform.models.PostWithoutDetails
+import com.example.blogmultiplatform.models.Profile
 import com.example.blogmultiplatform.models.User
 import com.example.blogmultiplatform.util.Constants.DATABASE_NAME
 import com.example.blogmultiplatform.util.Constants.MAIN_POSTS_LIMIT
@@ -39,6 +40,7 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
 
     private val database = client.getDatabase(DATABASE_NAME)
     private val userCollection = database.getCollection<User>("user")
+    private val profileCollection = database.getCollection<Profile>("profile")
     private val postCollection = database.getCollection<Post>("post")
     private val newsletterCollection = database.getCollection<Newsletter>("newsletter")
 
@@ -206,17 +208,31 @@ class MongoDB(private val context: InitApiContext) : MongoRepository {
     }
 
     override suspend fun saveProfile(user: User): Boolean {
+        // For compatibility: convert User -> Profile and call saveProfile(profile)
+        val profile = Profile(
+            _id = if (user._id.isBlank()) "" else user._id,
+            username = user.username,
+            displayName = user.displayName,
+            bio = user.bio,
+            avatarUrl = user.avatarUrl,
+            role = user.role
+        )
+        return saveProfile(profile)
+    }
+
+    override suspend fun saveProfile(profile: Profile): Boolean {
         return try {
-            // Upsert by username (if _id exists use that instead)
-            val filter = if (user._id.isNotBlank()) Filters.eq("_id", user._id) else Filters.eq("username", user.username)
+            val filter = if (!profile._id.isNullOrBlank()) Filters.eq("_id", profile._id) else Filters.eq("username", profile.username)
             val updates = mutableListOf(
-                Updates.set("displayName", user.displayName),
-                Updates.set("bio", user.bio),
-                Updates.set("avatarUrl", user.avatarUrl),
-                Updates.set("role", user.role)
+                Updates.set("username", profile.username),
+                Updates.set("displayName", profile.displayName),
+                Updates.set("bio", profile.bio),
+                Updates.set("avatarUrl", profile.avatarUrl),
+                Updates.set("role", profile.role),
+                Updates.set("ts", profile.ts)
             )
             val options = UpdateOptions().upsert(true)
-            val res = userCollection.updateOne(filter, Updates.combine(updates), options)
+            val res = profileCollection.updateOne(filter, Updates.combine(updates), options)
             res.wasAcknowledged()
         } catch (e: Exception) {
             context.logger.error(e.message.toString())

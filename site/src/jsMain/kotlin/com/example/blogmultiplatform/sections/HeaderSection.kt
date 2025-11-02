@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
 import com.example.blogmultiplatform.components.CategoryNavigationItems
 import com.example.blogmultiplatform.components.SearchBar
 import com.example.shared.Category
@@ -49,6 +50,9 @@ import org.w3c.dom.set
 import org.jetbrains.compose.web.css.percent
 import org.jetbrains.compose.web.css.px
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.StorageEvent
+import org.w3c.dom.events.Event
+//import org.w3c.dom.events.StorageEvent
 
 // New: simple visual switch component
 @Composable
@@ -118,6 +122,37 @@ fun Header(
     var fullSearchBarOpened by remember { mutableStateOf(false) }
     // Toggle state persisted in localStorage
     var headerToggleOn by remember { mutableStateOf(localStorage["headerToggle"]?.toBoolean() ?: false) }
+
+    // Read display name from localStorage and react to storage events
+    var displayName by remember { mutableStateOf(localStorage["displayName"] ?: "") }
+
+    DisposableEffect(Unit) {
+        val handler = { e: Event ->
+            val se = e as? StorageEvent
+            if (se != null && se.key == "displayName") {
+                displayName = se.newValue ?: ""
+            }
+        }
+        val profileUpdatedHandler = { e: Event ->
+            try {
+                // event may be a CustomEvent with detail containing displayName
+                val ce = e.asDynamic()
+                val detail = ce.detail
+                if (detail != null) {
+                    val dn = detail.asDynamic().displayName as? String
+                    if (dn != null) displayName = dn
+                }
+            } catch (_: Throwable) {
+                // ignore
+            }
+        }
+        window.addEventListener("storage", handler)
+        window.addEventListener("profileUpdated", profileUpdatedHandler)
+        onDispose {
+            window.removeEventListener("storage", handler)
+            window.removeEventListener("profileUpdated", profileUpdatedHandler)
+        }
+    }
 
     Row(
         modifier = Modifier
@@ -191,9 +226,15 @@ fun Header(
         })
         // small spacer using Box
         Box(modifier = Modifier.width(12.px))
-        BSButton(
-            text = "Sign in",
-            onClick = {context.router.navigateTo(Screen.AdminLogin.route)}
-        )
+
+        if (displayName.isNotBlank()) {
+            // show display name instead of Sign in
+            SpanText(modifier = Modifier.cursor(Cursor.Pointer).margin(right = 8.px).color(Colors.White).onClick { context.router.navigateTo(Screen.ProfilePage.route) }, text = "Hi, $displayName")
+        } else {
+            BSButton(
+                text = "Sign in",
+                onClick = {context.router.navigateTo(Screen.AdminLogin.route)}
+            )
+        }
     }
 }

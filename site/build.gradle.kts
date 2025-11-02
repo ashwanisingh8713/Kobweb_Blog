@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kobweb.application)
     alias(libs.plugins.kobwebx.markdown)
     alias(libs.plugins.serialization.plugin)
-    alias(libs.plugins.ksp)
 }
 
 group = "com.example.blogmultiplatform"
@@ -50,6 +49,37 @@ kotlin {
             compileOnly(libs.kobweb.api) // Provided by Kobweb backend at runtime
             implementation(libs.mongodb.kotlin.driver)
             implementation(libs.kotlinx.serialization)
+        }
+    }
+}
+
+// Ensure KSP cache path exists before KSP tasks run to avoid "symbols (No such file or directory)" errors
+// Resolve the paths at configuration time so task actions don't access `project` during execution (avoids configuration cache problems).
+val kspJsDir = layout.buildDirectory.dir("kspCaches/js/jsMain").get().asFile
+val kspSymbolsFile = layout.buildDirectory.file("kspCaches/js/jsMain/symbols").get().asFile
+
+// Create them now at configuration time (preemptively) to avoid race/NotFound issues during KSP tasks
+if (!kspJsDir.exists()) {
+    kspJsDir.mkdirs()
+}
+if (!kspSymbolsFile.exists()) {
+    kspSymbolsFile.createNewFile()
+}
+// If file is empty, write minimal JSON object to avoid KSP JSON decoding EOF errors
+if (kspSymbolsFile.length() == 0L) {
+    kspSymbolsFile.writeText("{}")
+}
+
+tasks.matching { it.name == "kspKotlinJs" || it.name == "kspKotlinJvm" }.configureEach {
+    doFirst {
+        if (!kspJsDir.exists()) {
+            kspJsDir.mkdirs()
+        }
+        if (!kspSymbolsFile.exists()) {
+            kspSymbolsFile.createNewFile()
+        }
+        if (kspSymbolsFile.length() == 0L) {
+            kspSymbolsFile.writeText("{}")
         }
     }
 }

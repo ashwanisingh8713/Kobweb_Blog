@@ -30,11 +30,14 @@ import com.varabyte.kobweb.browser.api
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import com.varabyte.kobweb.core.rememberPageContext
+import com.example.blogmultiplatform.navigation.Screen
 
 @Page("/profile")
 @Composable
 fun ProfilePage() {
     println("ProfilePage mounted")
+    val context = rememberPageContext()
     // Profile fields sourced from localStorage via getItem
     var username by remember { mutableStateOf(localStorage.getItem("username") ?: "") }
     var displayName by remember { mutableStateOf(localStorage.getItem("displayName") ?: "") }
@@ -52,41 +55,64 @@ fun ProfilePage() {
             property("display", "flex")
             property("align-items", "center")
             property("justify-content", "center")
+            // subtle app background
+            property("background", "linear-gradient(180deg,#f7f8fc,#ffffff)")
+            property("padding", "48px 16px")
         },
         contentAlignment = Alignment.Center
     ) {
         // Card
         Box(
             modifier = Modifier.styleModifier {
-                property("width", "auto")
+                property("width", "100%")
                 property("max-width", "900px")
                 property("background", "linear-gradient(180deg,#ffffff,#fbfbff)")
                 property("border-radius", "14px")
                 property("box-shadow", "0 24px 80px rgba(16,24,40,0.08)")
                 property("padding", "28px")
                 property("margin", "0 16px")
+                property("transition", "transform 220ms ease, box-shadow 220ms ease")
             }
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.styleModifier { property("width", "100%") }) {
-                // Header
-                SpanText(
-                    modifier = Modifier.fontSize(24.px).fontFamily(FONT_FAMILY).fontWeight(FontWeight.Bold).margin(bottom = 8.px),
-                    text = "Your Profile"
-                )
-                SpanText(
-                    modifier = Modifier.fontSize(13.px).color(Colors.Gray).margin(bottom = 18.px),
-                    text = "Create or update your public profile. Changes are saved locally."
-                )
+                // Header row with title + small avatar preview
+                Row(modifier = Modifier.fillMaxWidth().margin(bottom = 8.px).styleModifier { property("align-items", "center"); property("justify-content", "space-between") }) {
+                    Column {
+                        SpanText(
+                            modifier = Modifier.fontSize(28.px).fontFamily(FONT_FAMILY).fontWeight(FontWeight.Bold).margin(bottom = 6.px),
+                            text = "Your Profile"
+                        )
+                        SpanText(
+                            modifier = Modifier.fontSize(13.px).color(Colors.Gray),
+                            text = "Create or update your public profile. Changes are saved locally and sent to the server."
+                        )
+                    }
+
+                    Box(modifier = Modifier.styleModifier {
+                        property("display", "flex"); property("align-items", "center"); property("gap", "12px")
+                    }) {
+                        Box(modifier = Modifier.width(56.px).height(56.px).styleModifier {
+                            property("border-radius", "50%"); property("overflow", "hidden"); property("background", "#f4f6f8"); property("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+                        }) {
+                            if (avatarUrl.isNotBlank()) {
+                                Img(src = avatarUrl, attrs = { attr("style", "width:100%;height:100%;object-fit:cover") })
+                            } else {
+                                SpanText(modifier = Modifier.color(Colors.Gray).styleModifier { property("display", "flex"); property("align-items", "center"); property("justify-content", "center"); property("height", "100%") }, text = "A")
+                            }
+                        }
+                    }
+                }
 
                 // avatar preview and url (live preview on input)
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().margin(bottom = 14.px)) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().margin(bottom = 18.px)) {
                     Box(
-                        modifier = Modifier.width(96.px).height(96.px).styleModifier {
+                        modifier = Modifier.width(110.px).height(110.px).styleModifier {
                             property("border-radius", "50%")
                             property("overflow", "hidden")
-                            property("background", "#f4f6f8")
-                            property("box-shadow", "0 8px 24px rgba(16,24,40,0.06)")
-                        }.margin(right = 16.px)
+                            property("background", "linear-gradient(180deg,#f8fafc,#eef2ff)")
+                            property("box-shadow", "0 10px 30px rgba(16,24,40,0.06)")
+                            property("border", "1px solid rgba(99,102,241,0.06)")
+                        }.margin(right = 18.px)
                     ) {
                         if (avatarUrl.isNotBlank()) {
                             Img(src = avatarUrl, attrs = { attr("style", "width:100%;height:100%;object-fit:cover") })
@@ -99,81 +125,110 @@ fun ProfilePage() {
                     }
 
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        // Avatar URL input
+                        SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(bottom = 6.px), text = "Avatar URL")
                         Input(type = InputType.Text, attrs = {
                             attr("id", "profileAvatar")
-                            attr("placeholder", "Avatar URL")
+                            attr("placeholder", "https://example.com/you.jpg")
                             attr("value", avatarUrl
                             )
                             onInput {
                                 val input = it.target as? org.w3c.dom.HTMLInputElement
                                 if (input != null) avatarUrl = input.value
                             }
-                            attr("style", "width:100%; padding:12px; border-radius:10px; border:1px solid #e6e9f2; box-shadow: inset 0 1px 2px rgba(16,24,40,0.02);")
+                            attr("style", "width:100%; padding:12px 14px; border-radius:10px; border:1px solid #eef2ff; box-shadow: inset 0 1px 2px rgba(16,24,40,0.02); transition: box-shadow 160ms ease, border-color 160ms ease;")
                         })
                         SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(top = 8.px), text = "Paste a public image URL to preview instantly.")
                     }
                 }
 
                 // Inputs
-                Input(type = InputType.Text, attrs = {
-                    attr("id", "profileDisplayName")
-                    attr("placeholder", "Display name")
-                    attr("value", displayName)
-                    onInput {
-                        val input = it.target as? org.w3c.dom.HTMLInputElement
-                        if (input != null) displayName = input.value
-                    }
-                    attr("style", "width:100%; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e6e9f2; box-shadow: inset 0 1px 2px rgba(16,24,40,0.02);")
-                })
+                Column(modifier = Modifier.fillMaxWidth().margin(bottom = 8.px)) {
+                    SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(bottom = 6.px), text = "Display name")
+                    Input(type = InputType.Text, attrs = {
+                        attr("id", "profileDisplayName")
+                        attr("placeholder", "e.g. Jane Doe")
+                        attr("value", displayName)
+                        onInput {
+                            val input = it.target as? org.w3c.dom.HTMLInputElement
+                            if (input != null) displayName = input.value
+                        }
+                        attr("style", "width:100%; padding:12px 14px; border-radius:10px; margin-bottom:10px; border:1px solid #eef2ff; box-shadow: inset 0 1px 2px rgba(16,24,40,0.02);")
+                    })
 
-                Input(type = InputType.Text, attrs = {
-                    attr("id", "profileUsername")
-                    attr("placeholder", "Username")
-                    attr("value", username)
-                    onInput {
-                        val input = it.target as? org.w3c.dom.HTMLInputElement
-                        if (input != null) username = input.value
-                    }
-                    attr("style", "width:100%; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e6e9f2;")
-                })
+                    SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(bottom = 6.px), text = "Username")
+                    Input(type = InputType.Text, attrs = {
+                        attr("id", "profileUsername")
+                        attr("placeholder", "username")
+                        attr("value", username)
+                        onInput {
+                            val input = it.target as? org.w3c.dom.HTMLInputElement
+                            if (input != null) username = input.value
+                        }
+                        attr("style", "width:100%; padding:12px 14px; border-radius:10px; margin-bottom:10px; border:1px solid #eef2ff;")
+                    })
 
-                Input(type = InputType.Text, attrs = {
-                    attr("id", "profileBio")
-                    attr("placeholder", "Short bio")
-                    attr("value", bio)
-                    onInput {
-                        val input = it.target as? org.w3c.dom.HTMLInputElement
-                        if (input != null) bio = input.value
-                    }
-                    attr("style", "width:100%; padding:12px; border-radius:10px; margin-bottom:16px; border:1px solid #e6e9f2; height:84px;")
-                })
+                    SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(bottom = 6.px), text = "Short bio")
+                    Input(type = InputType.Text, attrs = {
+                        attr("id", "profileBio")
+                        attr("placeholder", "A short bio to show on your profile")
+                        attr("value", bio)
+                        onInput {
+                            val input = it.target as? org.w3c.dom.HTMLInputElement
+                            if (input != null) bio = input.value
+                        }
+                        attr("style", "width:100%; padding:12px 14px; border-radius:10px; margin-bottom:16px; border:1px solid #eef2ff; height:84px;")
+                    })
+                }
 
-                // role display (pill)
-                Row(modifier = Modifier.fillMaxWidth().margin(bottom = 16.px), horizontalArrangement = Arrangement.Center) {
-                    SpanText(modifier = Modifier.margin(right = 8.px).color(Colors.Gray), text = "Role:")
-                    Box(modifier = Modifier.styleModifier { property("background", "${if (role=="client") JsTheme.Primary.rgb else "transparent"}"); property("padding", "8px 14px"); property("border-radius", "999px"); property("border", "1px solid ${JsTheme.Primary.rgb}") }) {
-                        SpanText(modifier = Modifier.color(if (role=="client") Colors.White else JsTheme.Primary.rgb), text = role.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
+                // role selection (pills)
+                Column(modifier = Modifier.fillMaxWidth().margin(bottom = 18.px)) {
+                    SpanText(modifier = Modifier.fontSize(12.px).color(Colors.Gray).margin(bottom = 8.px), text = "Role")
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically) {
+                        Box(modifier = Modifier.styleModifier {
+                            property("cursor", "pointer")
+                            property("padding", "8px 16px")
+                            property("border-radius", "999px")
+                            property("margin-right", "12px")
+                            property("transition", "all 160ms ease")
+                            property("box-shadow", if (role == "client") "0 8px 30px rgba(6,182,212,0.12)" else "none")
+                            property("background", if (role == "client") JsTheme.Primary.hex else "transparent")
+                            property("border", "1px solid ${JsTheme.Primary.hex}")
+                        }.onClick { role = "client" }) {
+                            SpanText(modifier = Modifier.color(if (role == "client") Colors.White else JsTheme.Primary.rgb), text = "Client")
+                        }
+
+                        Box(modifier = Modifier.styleModifier {
+                            property("cursor", "pointer")
+                            property("padding", "8px 16px")
+                            property("border-radius", "999px")
+                            property("transition", "all 160ms ease")
+                            property("box-shadow", if (role == "developer") "0 8px 30px rgba(99,102,241,0.10)" else "none")
+                            property("background", if (role == "developer") "#7c83ff" else "transparent")
+                            property("border", "1px solid rgba(99,102,241,0.18)")
+                        }.onClick { role = "developer" }) {
+                            SpanText(modifier = Modifier.color(if (role == "developer") Colors.White else Colors.Gray), text = "Developer")
+                        }
                     }
                 }
 
                 // Actions
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Button(attrs = {
-                        attr("style", "width:140px;height:44px;border-radius:8px;border:1px solid #d7dae3;background:transparent;color:#374151")
+                        attr("style", "width:140px;height:44px;border-radius:8px;border:1px solid #e6e9f2;background:transparent;color:#374151; transition: transform 160ms ease;")
                         onClick {
                             // cancel -> reload values from storage
                             username = localStorage.getItem("username") ?: ""
                             displayName = localStorage.getItem("displayName") ?: ""
                             bio = localStorage.getItem("bio") ?: ""
                             avatarUrl = localStorage.getItem("avatarUrl") ?: ""
+                            role = localStorage.getItem("role") ?: "client"
                         }
                     }) {
                         SpanText(text = "Cancel")
                     }
 
                     Button(attrs = {
-                        attr("style", "width:140px;height:44px;border-radius:8px;background:linear-gradient(90deg, #06b6d4, #0ea5e9); color:white; box-shadow:0 8px 30px rgba(14,165,233,0.18)")
+                        attr("style", "width:160px;height:44px;border-radius:8px;background:linear-gradient(90deg, #06b6d4, #0ea5e9); color:white; box-shadow:0 10px 30px rgba(14,165,233,0.14); transition: transform 160ms ease;")
                         onClick {
                             // Save using state values (no DOM lookups)
                             localStorage.setItem("username", username)
@@ -200,6 +255,10 @@ fun ProfilePage() {
                                     if (success) {
                                         println("Profile saved on server")
                                         showSuccess = true
+                                        // Dispatch a simple event so header updates in this tab immediately (header can read localStorage)
+                                        js("window.dispatchEvent(new Event('profileUpdated'))")
+                                        // Navigate to home
+                                        context.router.navigateTo(Screen.HomePage.route)
                                     } else {
                                         println("Failed to save profile on server: $response")
                                         // still show success locally but you may want to show an error instead
@@ -219,9 +278,10 @@ fun ProfilePage() {
                 // Success overlay
                 if (showSuccess) {
                     Box(modifier = Modifier.styleModifier { property("position", "fixed"); property("inset", "0"); property("display", "flex"); property("align-items", "center"); property("justify-content", "center"); property("background", "rgba(2,6,23,0.35)") }) {
-                        Box(modifier = Modifier.styleModifier { property("background", "white"); property("padding", "20px"); property("border-radius", "12px"); property("box-shadow", "0 12px 40px rgba(16,24,40,0.12)") }) {
+                        Box(modifier = Modifier.styleModifier { property("background", "white"); property("padding", "24px"); property("border-radius", "12px"); property("box-shadow", "0 12px 40px rgba(16,24,40,0.12)") }) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                SpanText(modifier = Modifier.fontWeight(FontWeight.Bold).margin(bottom = 8.px), text = "Profile saved")
+                                SpanText(modifier = Modifier.fontWeight(FontWeight.Bold).fontSize(16.px).margin(bottom = 8.px), text = "Profile saved")
+                                SpanText(modifier = Modifier.fontSize(13.px).color(Colors.Gray).margin(bottom = 14.px), text = "Your profile has been updated successfully.")
                                 Button(attrs = Modifier.onClick { showSuccess = false }.toAttrs()) { SpanText(text = "OK") }
                             }
                         }

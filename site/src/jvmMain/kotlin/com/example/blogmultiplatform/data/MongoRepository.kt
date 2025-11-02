@@ -5,6 +5,7 @@ import com.example.blogmultiplatform.models.Newsletter
 import com.example.blogmultiplatform.models.Post
 import com.example.blogmultiplatform.models.PostWithoutDetails
 import com.example.blogmultiplatform.models.User
+import com.example.blogmultiplatform.models.Profile
 
 interface MongoRepository {
     suspend fun addPost(post: Post): Boolean
@@ -25,4 +26,7 @@ interface MongoRepository {
 
     // Save or update a user's profile (upsert by username or _id)
     suspend fun saveProfile(user: User): Boolean
+
+    // Save or update profile document in 'profile' collection
+    suspend fun saveProfile(profile: Profile): Boolean
 }
