@@ -125,23 +125,29 @@ fun Header(
 
     // Read display name from localStorage and react to storage events
     var displayName by remember { mutableStateOf(localStorage["displayName"] ?: "") }
+    // Read avatarUrl from localStorage so we can show the avatar in the header
+    var avatarUrl by remember { mutableStateOf(localStorage["avatarUrl"] ?: "") }
 
     DisposableEffect(Unit) {
         val handler = { e: Event ->
             val se = e as? StorageEvent
-            if (se != null && se.key == "displayName") {
-                displayName = se.newValue ?: ""
+            if (se != null) {
+                // Update individual keys if provided
+                if (se.key == "displayName") displayName = se.newValue ?: ""
+                if (se.key == "avatarUrl") avatarUrl = se.newValue ?: ""
+                // If key is null (e.g., storage.clear), reload both to be safe
+                if (se.key == null) {
+                    displayName = localStorage["displayName"] ?: ""
+                    avatarUrl = localStorage["avatarUrl"] ?: ""
+                }
             }
         }
         val profileUpdatedHandler = { e: Event ->
             try {
-                // event may be a CustomEvent with detail containing displayName
-                val ce = e.asDynamic()
-                val detail = ce.detail
-                if (detail != null) {
-                    val dn = detail.asDynamic().displayName as? String
-                    if (dn != null) displayName = dn
-                }
+                // The Profile page dispatches a simple Event('profileUpdated')
+                // Read fresh values from localStorage so the header updates in this tab
+                displayName = localStorage["displayName"] ?: ""
+                avatarUrl = localStorage["avatarUrl"] ?: ""
             } catch (_: Throwable) {
                 // ignore
             }
@@ -235,6 +241,13 @@ fun Header(
                 text = "Sign in",
                 onClick = {context.router.navigateTo(Screen.AdminLogin.route)}
             )
+        }
+        // Avatar: show a small circular avatar if available; clicking it goes to the profile page
+        Box(modifier = Modifier.width(8.px))
+        if (avatarUrl.isNotBlank()) {
+            Box(modifier = Modifier.width(36.px).height(36.px).borderRadius(r = 18.px).backgroundColor(Colors.White).cursor(Cursor.Pointer).onClick { context.router.navigateTo(Screen.ProfilePage.route) }) {
+                Image(modifier = Modifier.width(36.px).height(36.px).borderRadius(r = 18.px), src = avatarUrl, alt = "Avatar")
+            }
         }
     }
 }
